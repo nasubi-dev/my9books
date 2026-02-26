@@ -1,6 +1,7 @@
 import type { BookSearchResult } from '../types/book'
 
-const RAKUTEN_API_BASE = 'https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404'
+const RAKUTEN_API_BASE
+  = 'https://openapi.rakuten.co.jp/services/api/BooksBook/Search/20170404'
 
 interface RakutenItem {
   isbn: string
@@ -12,7 +13,7 @@ interface RakutenItem {
 }
 
 interface RakutenResponse {
-  Items?: { Item: RakutenItem }[]
+  Items?: RakutenItem[]
   error?: string
 }
 
@@ -21,23 +22,33 @@ interface RakutenResponse {
  * - 利用規約によりキャッシュ禁止
  * - レート制限: 1req/秒
  */
-export async function searchRakutenBooks(query: string): Promise<BookSearchResult[]> {
+export async function searchRakutenBooks(
+  query: string,
+): Promise<BookSearchResult[]> {
   const appId = process.env.RAKUTEN_APP_ID
-  if (!appId) {
-    console.warn('RAKUTEN_APP_ID is not set')
+  const accessKey = process.env.RAKUTEN_ACCESS_KEY
+  if (!appId || !accessKey) {
+    console.warn('RAKUTEN_APP_ID or RAKUTEN_ACCESS_KEY is not set')
     return []
   }
 
   const params = new URLSearchParams({
     applicationId: appId,
+    accessKey,
     title: query,
     hits: '20',
     outOfStockFlag: '1',
     formatVersion: '2',
   })
 
+  // 楽天 API は登録済みドメインの Referer / Origin が必要なため SITE_URL を使用
+  const siteUrl = process.env.SITE_URL ?? 'https://my9books.nasubi.dev'
   const res = await fetch(`${RAKUTEN_API_BASE}?${params}`, {
-    headers: { 'User-Agent': 'my9books/1.0' },
+    headers: {
+      'User-Agent': 'my9books/1.0',
+      'Referer': `${siteUrl}/`,
+      'Origin': siteUrl,
+    },
   })
 
   if (!res.ok) {
@@ -45,19 +56,19 @@ export async function searchRakutenBooks(query: string): Promise<BookSearchResul
     return []
   }
 
-  const data = await res.json() as RakutenResponse
+  const data = (await res.json()) as RakutenResponse
 
   if (!data.Items)
     return []
 
-  return data.Items
-    .filter(({ Item }) => Item.isbn && Item.isbn.length > 0)
-    .map(({ Item }) => ({
-      isbn: Item.isbn.replace(/-/g, ''),
-      title: Item.title,
-      author: Item.author,
-      // smallImageUrl の "64×" を "200×" に差し替えて大きい画像を取得
-      coverUrl: Item.largeImageUrl || Item.mediumImageUrl || Item.smallImageUrl || null,
+  return data.Items.filter(item => item.isbn && item.isbn.length > 0).map(
+    item => ({
+      isbn: item.isbn.replace(/-/g, ''),
+      title: item.title,
+      author: item.author,
+      coverUrl:
+        item.largeImageUrl || item.mediumImageUrl || item.smallImageUrl || null,
       source: 'rakuten' as const,
-    }))
+    }),
+  )
 }
