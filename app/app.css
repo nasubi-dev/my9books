@@ -1,15 +1,221 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Design System - my9books
+   コンセプト: グレースケール × フローティングUI
+   グラデーション禁止 / Primary カラーなし
+   ============================================================ */
+
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  /* フォント */
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* ── カラーパレット ── */
+
+  /* ベース背景（温かみのあるオフホワイト） */
+  --color-bg: #f9f2f2;
+  /* フローティング要素（カード・モーダル・ドロップダウン） */
+  --color-surface: #ffffff;
+  /* インセット要素（入力欄・タグ・バッジ） */
+  --color-sunken: #ede6e6;
+  /* ホバー時のサーフェス */
+  --color-surface-hover: #f5eeee;
+
+  /* ボーダー */
+  --color-border: #ddd7d7;
+  --color-border-strong: #c8c2c2;
+
+  /* テキスト */
+  --color-text: #1c1818;
+  --color-text-secondary: #6b6464;
+  --color-text-tertiary: #9e9898;
+  --color-text-disabled: #c0baba;
+
+  /* アクション（グレースケール） */
+  --color-action: #2e2a2a;
+  --color-action-hover: #1a1717;
+  --color-action-fg: #ffffff;
+
+  /* 状態 */
+  --color-danger: #c0392b;
+  --color-danger-bg: #fdf0ef;
+  --color-warning: #b7770a;
+  --color-warning-bg: #fdf8ee;
+  --color-success: #217a4b;
+  --color-success-bg: #eff8f3;
+
+  /* ── シャドウ（フローティングUI の核） ── */
+  --shadow-sm: 0 1px 2px 0 rgb(28 24 24 / 0.06);
+  --shadow-md:
+    0 2px 8px 0 rgb(28 24 24 / 0.08), 0 1px 2px 0 rgb(28 24 24 / 0.04);
+  --shadow-lg:
+    0 4px 16px 0 rgb(28 24 24 / 0.1), 0 2px 4px 0 rgb(28 24 24 / 0.06);
+  --shadow-xl:
+    0 8px 32px 0 rgb(28 24 24 / 0.12), 0 4px 8px 0 rgb(28 24 24 / 0.06);
+  /* モーダル・オーバーレイ用 */
+  --shadow-overlay: 0 20px 60px 0 rgb(28 24 24 / 0.18);
+
+  /* ── ボーダー半径 ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
 }
 
+/* ============================================================
+   ベーススタイル
+   ============================================================ */
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
-  }
+/* ============================================================
+   コンポーネントクラス
+   ============================================================ */
+
+/* フローティングカード */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.card-hoverable {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+  cursor: pointer;
+}
+.card-hoverable:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-border-strong);
+}
+
+/* モーダル */
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-overlay);
+}
+
+/* オーバーレイ背景 */
+.overlay-backdrop {
+  background: rgb(28 24 24 / 0.4);
+  backdrop-filter: blur(4px);
+}
+
+/* ボタン - プライマリ（ダーク） */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--color-action);
+  color: var(--color-action-fg);
+  padding: 10px 20px;
+}
+.btn-primary:hover {
+  background: var(--color-action-hover);
+}
+
+/* ボタン - セカンダリ（アウトライン） */
+.btn-secondary {
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  padding: 10px 20px;
+  box-shadow: var(--shadow-sm);
+}
+.btn-secondary:hover {
+  background: var(--color-surface-hover);
+}
+
+/* ボタン - ゴースト */
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  padding: 8px 12px;
+}
+.btn-ghost:hover {
+  background: var(--color-sunken);
+  color: var(--color-text);
+}
+
+/* ボタン - 危険 */
+.btn-danger {
+  background: var(--color-danger);
+  color: #fff;
+  padding: 10px 20px;
+}
+
+/* 入力欄 */
+.input {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  outline: none;
+}
+.input:focus {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 0 0 3px rgb(28 24 24 / 0.08);
+}
+.input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* バッジ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--color-sunken);
+  color: var(--color-text-secondary);
+}
+
+/* フローティングツールバー（書籍グリッド操作バー等） */
+.floating-toolbar {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  padding: 6px 12px;
+}
+
+/* セパレーター */
+.divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
 }

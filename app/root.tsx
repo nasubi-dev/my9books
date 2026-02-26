@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 import type { Route } from './+types/root'
 import { ClerkProvider } from '@clerk/react-router'
-import { rootAuthLoader } from '@clerk/react-router/server'
+import { clerkMiddleware, rootAuthLoader } from '@clerk/react-router/server'
 import { Analytics } from '@vercel/analytics/react'
 
 import {
@@ -13,6 +13,9 @@ import {
   ScrollRestoration,
 } from 'react-router'
 import './app.css'
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const middleware: Route.MiddlewareFunction[] = [clerkMiddleware()]
 
 export async function loader(args: Route.LoaderArgs) {
   return rootAuthLoader(args)
