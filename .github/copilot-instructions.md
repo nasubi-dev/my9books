@@ -1,51 +1,23 @@
-このリポジトリでは bun を使用しているため、bun を使用してコードを実行してください。
+- 必要に応じて、ユーザに質問を行い、要求を明確にする
+- 作業後、作業内容とユーザが次に取れる行動を説明
 
-## プロジェクト固有の指示
+## ファイルを編集後に行うこと
+1. コードを編集したら、必ず `bun run check` を実行してLintエラーを修正
+  a. `bun run check:fix` を使用して自動修正できるエラーは積極的に利用
+2. ビルドが通るか確認するために、 `bun run build` は適宜
+3. コードの変更内容を簡潔に説明してください（例: "Amazon PA APIのレート制限に関するドキュメントを更新"）
 
-### 技術スタック
+## 基本ルール
+- 「調査」と指示された場合、都度 `docs/reports` に記載
+  - 不明な点については、fetch mcp を使用して検索
+  - ファイル名は `YYYYMMDDmmss-title.md`
 
-- **ランタイム**: Cloudflare Workers
-- **フレームワーク**: Hono
-- **言語**: TypeScript
-- **パッケージマネージャー**: Bun
-- **外部 API**: Discord API, Google Apps Script
+- 「計画」と指示した場合、`TODO.md` に記載
+  - 前回の内容が残っている場合は、読まずに消して構わない
+  - コードベース `/docs` を読み込み、要件に関連性のあるファイルパスをすべて記載
+  - 必要最小限の要件のみを記載
+  - このフェーズで、コードを書いては絶対にいけない
 
-### コーディング規約
-
-- TypeScript の厳密な型チェックを使用
-- async/await を使用（Promise チェーンは避ける）
-- エラーハンドリングは適切に try-catch で実装
-- 環境変数は`c.env`経由でアクセス
-- Discord API のレスポンスは適切な型を使用
-
-### 実行コマンド
-
-- 開発サーバー: `bun run dev`
-- デプロイ: `bun run deploy`
-- 型チェック: `bun run cf-typegen`
-- TypeScript コンパイル: `bun run tsc --noEmit`
-
-### セキュリティ注意事項
-
-- Discord 署名検証は必須
-- 環境変数に機密情報を保存
-- チャンネル制限機能を適切に実装
-- エラーメッセージに機密情報を含めない
-
-### デバッグ方法
-
-- `console.log`で Cloudflare Workers のログを確認
-- `wrangler tail`でリアルタイムログ監視
-- Discord Developer Portal でインタラクションをテスト
-
-### ファイル構造の方針
-
-- `src/types.ts`: 全ての型定義
-- `src/utils.ts`: ユーティリティ関数
-- `src/*-service.ts`: 各種サービスクラス
-- `gas-code.js`: Google Apps Script コード（別ファイル）
-
-### 実装方針
-- GAS側での処理は最小限に抑える
-- Cloudflare Workers 側での処理を中心に実装
-- エラーハンドリングは Cloudflare Workers 側で行う
+- ユーザが「実装」と指示した場合、`TODO.md` に記載された内容に基づいて実装
+  - 記載されている以上の実装を絶対に行わない
+  - ここでデバッグしない
