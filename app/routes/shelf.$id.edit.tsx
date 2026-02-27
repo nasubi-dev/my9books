@@ -405,7 +405,7 @@ export default function ShelfEdit(): JSX.Element {
         <div className="flex gap-3">
           <button
             type="button"
-            onClick={() => navigate(`/shelf/${shelf.id}`)}
+            onClick={() => navigate('/me')}
             className="flex-1 px-4 py-3 border border-[var(--color-border)] text-[var(--color-text)] rounded-[var(--radius-md)] font-medium hover:bg-[var(--color-surface-hover)] transition-colors"
           >
             キャンセル

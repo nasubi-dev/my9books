@@ -1,5 +1,7 @@
 import type { JSX } from 'react'
+import type { LoaderFunctionArgs } from 'react-router'
 import type { Route } from './+types/shelf.$id'
+import { getAuth } from '@clerk/react-router/ssr.server'
 import { eq, sql } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { data, useLoaderData } from 'react-router'
@@ -25,8 +27,8 @@ interface BookMeta {
 
 // ─── Loader ──────────────────────────────────────────────────
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const { id } = params
+export async function loader(args: Route.LoaderArgs) {
+  const { id } = args.params
 
   const [shelf] = await db.select().from(shelves).where(eq(shelves.id, id)).limit(1)
   if (!shelf)
@@ -46,11 +48,15 @@ export async function loader({ params }: Route.LoaderArgs) {
     .where(eq(shelfBooks.shelfId, id))
     .orderBy(shelfBooks.position)
 
-  // 閲覧数インクリメント（fire & forget）
-  db.update(shelves)
-    .set({ viewCount: sql`${shelves.viewCount} + 1` })
-    .where(eq(shelves.id, id))
-    .catch(() => {})
+  // 作者自身のアクセスは閲覧数をカウントしない
+  const auth = await getAuth(args as unknown as LoaderFunctionArgs)
+  const viewerId = (auth as { userId?: string | null }).userId ?? null
+  if (viewerId !== shelf.userId) {
+    db.update(shelves)
+      .set({ viewCount: sql`${shelves.viewCount} + 1` })
+      .where(eq(shelves.id, id))
+      .catch(() => {})
+  }
 
   return { shelf: { ...shelf, books: rows } }
 }
