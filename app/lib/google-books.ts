@@ -47,8 +47,12 @@ export async function searchGoogleBooks(query: string): Promise<BookSearchResult
     return []
   }
 
+  // ISBN（10桁または13桁の数字）の場合は isbn: プレフィックスで完全一致検索
+  const isIsbn = /^\d{10}(?:\d{3})?$/.test(query.replace(/-/g, ''))
+  const q = isIsbn ? `isbn:${query.replace(/-/g, '')}` : query
+
   const params = new URLSearchParams({
-    q: query,
+    q,
     maxResults: '20',
     printType: 'books',
     key: apiKey,

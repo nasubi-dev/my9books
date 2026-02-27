@@ -32,10 +32,13 @@ export async function searchRakutenBooks(
     return []
   }
 
+  // ISBN（10桁または13桁の数字）かどうかを判定
+  const isIsbn = /^\d{10}(?:\d{3})?$/.test(query.replace(/-/g, ''))
+
   const params = new URLSearchParams({
     applicationId: appId,
     accessKey,
-    title: query,
+    ...(isIsbn ? { isbn: query.replace(/-/g, '') } : { title: query }),
     hits: '20',
     outOfStockFlag: '1',
     formatVersion: '2',
