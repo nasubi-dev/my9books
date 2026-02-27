@@ -58,7 +58,7 @@ export async function loader(args: Route.LoaderArgs) {
       .catch(() => {})
   }
 
-  return { shelf: { ...shelf, books: rows } }
+  return { shelf: { ...shelf, books: rows }, shelfUrl: args.request.url }
 }
 
 // ─── スケルトン ───────────────────────────────────────────────
@@ -244,12 +244,25 @@ function BookModal({ book, meta, onClose }: ModalProps): JSX.Element {
 // ─── メインページ ─────────────────────────────────────────────
 
 export default function ShelfDetailPage(): JSX.Element {
-  const { shelf } = useLoaderData<typeof loader>()
+  const { shelf, shelfUrl } = useLoaderData<typeof loader>()
 
   // 書影・タイトル・著者（クライアント側でプログレッシブ取得）
   // metaMap にキーが存在しない = まだ読み込み中
   const [metaMap, setMetaMap] = useState<Record<string, BookMeta | null>>({})
   const [modalBook, setModalBook] = useState<ShelfBookRow | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyUrl = (): void => {
+    navigator.clipboard.writeText(shelfUrl).then(() => {
+      // share_url_copy カスタムイベント（フェーズ10で実装）
+      setCopied(true)
+      setTimeout(() => {
+        setCopied(false)
+      }, 2000)
+    }).catch(() => {})
+  }
+
+  const tweetUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shelfUrl)}&text=${encodeURIComponent(`${shelf.name} | my9books`)}`
 
   // 各 ISBN の書影を並列フェッチ（完了次第 state 更新）
   useEffect(() => {
@@ -295,6 +308,44 @@ export default function ShelfDetailPage(): JSX.Element {
             {' '}
             閲覧
           </p>
+          {/* SNS共有 */}
+          <div className="flex gap-2 mt-3">
+            <a
+              href={tweetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--color-sunken)] text-[var(--color-text-secondary)] rounded-[var(--radius-full)] hover:bg-[var(--color-border)] transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.732-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              ツイート
+            </a>
+            <button
+              type="button"
+              onClick={handleCopyUrl}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--color-sunken)] text-[var(--color-text-secondary)] rounded-[var(--radius-full)] hover:bg-[var(--color-border)] transition-colors"
+            >
+              {copied
+                ? (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                      コピーしました
+                    </>
+                  )
+                : (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                      </svg>
+                      URLをコピー
+                    </>
+                  )}
+            </button>
+          </div>
         </div>
 
         {/* 9冊グリッド（3×3） */}
