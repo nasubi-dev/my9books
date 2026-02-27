@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { data, Link, useLoaderData } from 'react-router'
 import { db } from '../db'
 import { shelfBooks, shelves, users } from '../db/schema'
+import { COPY } from '../lib/copy'
 
 // ─── Loader ──────────────────────────────────────────────────
 
@@ -99,9 +100,7 @@ function ShelfCard({ shelf }: { shelf: ShelfData }): JSX.Element {
           {shelf.name}
         </p>
         <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-          {shelf.viewCount.toLocaleString()}
-          {' '}
-          閲覧
+          {COPY.status.viewCount(shelf.viewCount)}
         </p>
       </div>
     </Link>
@@ -122,15 +121,14 @@ export default function UserShelves(): JSX.Element {
             さんのShelf
           </h1>
           <p className="text-sm text-[var(--color-text-secondary)] mt-1">
-            {userShelves.length}
-            件
+            {COPY.status.shelfCount(userShelves.length)}
           </p>
         </div>
 
         {userShelves.length === 0
           ? (
               <div className="card p-12 text-center">
-                <p className="text-[var(--color-text-secondary)]">まだShelfがありません</p>
+                <p className="text-[var(--color-text-secondary)]">{COPY.empty.shelf}</p>
               </div>
             )
           : (

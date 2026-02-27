@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { data, useLoaderData } from 'react-router'
 import { db } from '../db'
 import { books, shelfBooks, shelves } from '../db/schema'
+import { COPY } from '../lib/copy'
 
 // ─── 型定義 ───────────────────────────────────────────────────
 
@@ -262,7 +263,7 @@ export default function ShelfDetailPage(): JSX.Element {
     }).catch(() => {})
   }
 
-  const tweetUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shelfUrl)}&text=${encodeURIComponent(`${shelf.name} | my9books`)}`
+  const tweetUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shelfUrl)}&text=${encodeURIComponent(COPY.share.tweetText(shelf.name))}`
 
   // 各 ISBN の書影を並列フェッチ（完了次第 state 更新）
   useEffect(() => {
@@ -304,9 +305,7 @@ export default function ShelfDetailPage(): JSX.Element {
             {shelf.name}
           </h1>
           <p className="text-sm text-[var(--color-text-tertiary)] mt-1">
-            {shelf.viewCount.toLocaleString()}
-            {' '}
-            閲覧
+            {COPY.status.viewCount(shelf.viewCount)}
           </p>
           {/* SNS共有 */}
           <div className="flex gap-2 mt-3">
@@ -319,7 +318,7 @@ export default function ShelfDetailPage(): JSX.Element {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.732-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
               </svg>
-              ツイート
+              {COPY.share.tweetButtonLabel}
             </a>
             <button
               type="button"
@@ -332,7 +331,7 @@ export default function ShelfDetailPage(): JSX.Element {
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
-                      コピーしました
+                      {COPY.share.urlCopied}
                     </>
                   )
                 : (
@@ -341,7 +340,7 @@ export default function ShelfDetailPage(): JSX.Element {
                         <rect x="9" y="9" width="13" height="13" rx="2" />
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                       </svg>
-                      URLをコピー
+                      {COPY.share.copyButtonLabel}
                     </>
                   )}
             </button>

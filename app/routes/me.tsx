@@ -7,6 +7,7 @@ import { Link, useLoaderData, useNavigate } from 'react-router'
 import { db } from '../db'
 import { shelfBooks, shelves } from '../db/schema'
 import { requireAuth } from '../lib/auth.server'
+import { COPY } from '../lib/copy'
 
 // ─── Loader ──────────────────────────────────────────────────
 
@@ -106,9 +107,7 @@ function ShelfCard({ shelf, isOwner, onDelete }: ShelfCardProps): JSX.Element {
           {shelf.name}
         </Link>
         <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
-          {shelf.viewCount.toLocaleString()}
-          {' '}
-          閲覧
+          {COPY.status.viewCount(shelf.viewCount)}
         </p>
       </div>
 
@@ -119,14 +118,14 @@ function ShelfCard({ shelf, isOwner, onDelete }: ShelfCardProps): JSX.Element {
             to={`/shelf/${shelf.id}/edit`}
             className="flex-1 text-center text-xs py-1.5 border border-[var(--color-border)] rounded-[var(--radius-sm)] text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-hover)] transition-colors"
           >
-            編集
+            {COPY.action.edit}
           </Link>
           <button
             type="button"
             onClick={() => onDelete(shelf.id)}
             className="flex-1 text-xs py-1.5 border border-[var(--color-border)] rounded-[var(--radius-sm)] text-[var(--color-danger)] hover:bg-[var(--color-danger-bg)] transition-colors"
           >
-            削除
+            {COPY.action.delete}
           </button>
         </div>
       )}
@@ -178,7 +177,7 @@ export default function Me(): JSX.Element {
         {shelfList.length === 0
           ? (
               <div className="card p-12 text-center">
-                <p className="text-[var(--color-text-secondary)] mb-4">まだShelfがありません</p>
+                <p className="text-[var(--color-text-secondary)] mb-4">{COPY.empty.shelf}</p>
                 <button
                   type="button"
                   onClick={() => navigate('/shelf/new')}
@@ -206,9 +205,9 @@ export default function Me(): JSX.Element {
       {deleteTarget !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="card p-6 max-w-sm w-full">
-            <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">Shelfを削除しますか？</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">{COPY.action.deleteShelfTitle}</h3>
             <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-              この操作は元に戻せません。
+              {COPY.action.deleteShelfBody}
             </p>
             <div className="flex gap-3">
               <button
@@ -217,7 +216,7 @@ export default function Me(): JSX.Element {
                 disabled={isDeleting}
                 className="flex-1 px-4 py-2 border border-[var(--color-border)] text-[var(--color-text)] rounded-[var(--radius-md)] text-sm font-medium hover:bg-[var(--color-surface-hover)] transition-colors disabled:opacity-50"
               >
-                キャンセル
+                {COPY.action.cancel}
               </button>
               <button
                 type="button"
@@ -225,7 +224,7 @@ export default function Me(): JSX.Element {
                 disabled={isDeleting}
                 className="flex-1 px-4 py-2 bg-[var(--color-danger)] text-white rounded-[var(--radius-md)] text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {isDeleting ? '削除中...' : '削除する'}
+                {isDeleting ? '削除中...' : COPY.action.deleteConfirm}
               </button>
             </div>
           </div>

@@ -5,6 +5,7 @@ import type { Route } from './+types/shelf.new'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { requireAuth } from '../lib/auth.server'
+import { COPY } from '../lib/copy'
 
 // ─── Loader（認証チェック） ────────────────────────────────────
 
@@ -184,14 +185,14 @@ export default function ShelfNew(): JSX.Element {
         {/* Shelf名入力 */}
         <section className="card p-6 mb-6">
           <label className="block text-sm font-semibold text-[var(--color-text)] mb-2">
-            Shelf名
+            {COPY.form.shelfNameLabel}
             <span className="text-[var(--color-danger)] ml-1">*</span>
           </label>
           <input
             type="text"
             value={shelfName}
             onChange={e => setShelfName(e.target.value)}
-            placeholder="例: 2024年に読んだベスト本"
+            placeholder={COPY.form.shelfNamePlaceholder}
             maxLength={100}
             className="w-full px-3 py-2 bg-[var(--color-sunken)] border border-[var(--color-border)] rounded-[var(--radius-md)] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-border-strong)]"
           />
@@ -200,23 +201,21 @@ export default function ShelfNew(): JSX.Element {
         {/* 書籍検索 */}
         <section className="card p-6 mb-6">
           <h2 className="text-base font-semibold text-[var(--color-text)] mb-3">
-            本を追加
+            {COPY.form.addBookLabel}
             <span className="ml-2 font-normal text-sm text-[var(--color-text-secondary)]">
-              (
-              {books.length}
-              /9冊)
+              {COPY.status.bookCount(books.length, 9)}
             </span>
           </h2>
           <input
             type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="タイトルや著者名で検索..."
+            placeholder={COPY.form.searchPlaceholder}
             disabled={books.length >= 9}
             className="w-full px-3 py-2 bg-[var(--color-sunken)] border border-[var(--color-border)] rounded-[var(--radius-md)] text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-border-strong)] mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           {isSearching && (
-            <p className="py-2 text-sm text-[var(--color-text-secondary)]">検索中...</p>
+            <p className="py-2 text-sm text-[var(--color-text-secondary)]">{COPY.status.searching}</p>
           )}
           {!isSearching && results.length > 0 && (
             <ul className="border border-[var(--color-border)] rounded-[var(--radius-md)] divide-y divide-[var(--color-border)] overflow-hidden max-h-64 overflow-y-auto">
@@ -260,7 +259,7 @@ export default function ShelfNew(): JSX.Element {
         {books.length > 0 && (
           <section className="card p-6 mb-6">
             <h2 className="text-base font-semibold text-[var(--color-text)] mb-1">選択した本</h2>
-            <p className="text-xs text-[var(--color-text-secondary)] mb-3">ドラッグで並び替えができます</p>
+            <p className="text-xs text-[var(--color-text-secondary)] mb-3">{COPY.form.dragHint}</p>
             <ul className="space-y-2">
               {books.map((book, index) => (
                 <li
@@ -304,7 +303,7 @@ export default function ShelfNew(): JSX.Element {
                       <textarea
                         value={book.review}
                         onChange={e => updateBook(book.isbn, { review: e.target.value })}
-                        placeholder="感想・紹介文（任意）"
+                        placeholder={COPY.form.reviewPlaceholder}
                         rows={3}
                         className="w-full px-3 py-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-[var(--radius-sm)] text-sm text-[var(--color-text)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-border-strong)] resize-none"
                       />
@@ -314,7 +313,7 @@ export default function ShelfNew(): JSX.Element {
                           checked={book.isSpoiler}
                           onChange={e => updateBook(book.isbn, { isSpoiler: e.target.checked })}
                         />
-                        ネタバレを含む
+                        {COPY.form.spoilerCheckbox}
                       </label>
                     </div>
                   )}
@@ -336,7 +335,7 @@ export default function ShelfNew(): JSX.Element {
             onClick={() => { window.history.back() }}
             className="flex-1 px-4 py-3 border border-[var(--color-border)] text-[var(--color-text)] rounded-[var(--radius-md)] font-medium hover:bg-[var(--color-surface-hover)] transition-colors"
           >
-            キャンセル
+            {COPY.action.cancel}
           </button>
           <button
             type="button"
@@ -344,7 +343,7 @@ export default function ShelfNew(): JSX.Element {
             disabled={isSubmitting}
             className="flex-1 px-4 py-3 bg-[var(--color-action)] text-[var(--color-action-fg)] rounded-[var(--radius-md)] font-medium hover:bg-[var(--color-action-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? '作成中...' : 'Shelfを作成'}
+            {isSubmitting ? COPY.action.creating : COPY.action.create}
           </button>
         </div>
       </div>
@@ -353,10 +352,9 @@ export default function ShelfNew(): JSX.Element {
       {showConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="card p-6 max-w-sm w-full">
-            <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">9冊に満たない状態です</h3>
+            <h3 className="text-lg font-semibold text-[var(--color-text)] mb-2">{COPY.form.confirmLessThan9Title}</h3>
             <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-              {books.length}
-              冊が選択されています。このまま作成しますか？
+              {COPY.form.confirmLessThan9Body(books.length)}
             </p>
             <div className="flex gap-3">
               <button
@@ -364,7 +362,7 @@ export default function ShelfNew(): JSX.Element {
                 onClick={() => setShowConfirm(false)}
                 className="flex-1 px-4 py-2 border border-[var(--color-border)] text-[var(--color-text)] rounded-[var(--radius-md)] text-sm font-medium hover:bg-[var(--color-surface-hover)] transition-colors"
               >
-                戻って追加
+                {COPY.form.backToAddButton}
               </button>
               <button
                 type="button"
@@ -375,7 +373,7 @@ export default function ShelfNew(): JSX.Element {
                 disabled={isSubmitting}
                 className="flex-1 px-4 py-2 bg-[var(--color-action)] text-[var(--color-action-fg)] rounded-[var(--radius-md)] text-sm font-medium hover:bg-[var(--color-action-hover)] transition-colors disabled:opacity-50"
               >
-                このまま作成
+                {COPY.form.confirmCreateButton}
               </button>
             </div>
           </div>
