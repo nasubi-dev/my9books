@@ -28,9 +28,10 @@ export const shelves = sqliteTable('shelves', {
     .default(sql`(datetime('now'))`),
 })
 
-// 書籍マスタ（タイトル・著者・書影はAPI規約上保存不可）
+// 書籍マスタ
 export const books = sqliteTable('books', {
   isbn: text('isbn').primaryKey(),
+  coverUrl: text('cover_url'), // 書影URL（楽天/Google Books 由来）※表示用のみ・再配布不可
   amazonAffiliateUrl: text('amazon_affiliate_url'),
   rakutenAffiliateUrl: text('rakuten_affiliate_url'),
 })

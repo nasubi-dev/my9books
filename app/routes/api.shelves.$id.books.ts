@@ -24,9 +24,10 @@ export async function action(args: Route.ActionArgs) {
 
   const body = (await args.request.json()) as {
     isbn?: string
+    coverUrl?: string | null
     rakutenAffiliateUrl?: string
   }
-  const { isbn, rakutenAffiliateUrl } = body
+  const { isbn, coverUrl, rakutenAffiliateUrl } = body
   if (!isbn)
     return Response.json({ error: 'isbn is required' }, { status: 400 })
 
@@ -45,10 +46,17 @@ export async function action(args: Route.ActionArgs) {
   // books テーブルに isbn を upsert
   await db
     .insert(books)
-    .values({ isbn, rakutenAffiliateUrl: rakutenAffiliateUrl ?? null })
+    .values({
+      isbn,
+      coverUrl: coverUrl ?? null,
+      rakutenAffiliateUrl: rakutenAffiliateUrl ?? null,
+    })
     .onConflictDoUpdate({
       target: books.isbn,
-      set: { rakutenAffiliateUrl: rakutenAffiliateUrl ?? null },
+      set: {
+        coverUrl: coverUrl ?? null,
+        rakutenAffiliateUrl: rakutenAffiliateUrl ?? null,
+      },
     })
 
   const position = bookCount + 1

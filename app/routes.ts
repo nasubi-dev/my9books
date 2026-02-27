@@ -1,9 +1,5 @@
 import type { RouteConfig } from '@react-router/dev/routes'
-import {
-  index,
-  route,
-
-} from '@react-router/dev/routes'
+import { index, route } from '@react-router/dev/routes'
 
 export default [
   // トップ
@@ -34,6 +30,6 @@ export default [
     'routes/api.shelves.$id.books.reorder.ts',
   ),
   route('api/users/:userId/shelves', 'routes/api.users.$userId.shelves.ts'),
-  route('api/og/:shelfId', 'routes/api.og.$shelfId.ts'),
+  route('api/og-default', 'routes/api.og.default.tsx'),
   route('api/webhooks/clerk', 'routes/api.webhooks.clerk.ts'),
 ] satisfies RouteConfig

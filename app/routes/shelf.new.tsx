@@ -140,7 +140,7 @@ export default function ShelfNew(): JSX.Element {
         const addRes = await fetch(`/api/shelves/${shelf.id}/books`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isbn: book.isbn }),
+          body: JSON.stringify({ isbn: book.isbn, coverUrl: book.coverUrl }),
         })
         if (!addRes.ok)
           continue

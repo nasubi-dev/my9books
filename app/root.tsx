@@ -21,6 +21,23 @@ export async function loader(args: Route.LoaderArgs) {
   return rootAuthLoader(args)
 }
 
+// ─── デフォルトメタ（全ページ共通） ─────────────────────────────
+export function meta(): Route.MetaDescriptors {
+  const origin
+    = typeof window !== 'undefined'
+      ? window.location.origin
+      : (process.env.APP_URL ?? 'https://my9books.nasubi.dev')
+  return [
+    { title: 'my9books' },
+    { name: 'description', content: 'あなたを作った9冊を、シェアしよう。' },
+    { property: 'og:title', content: 'my9books' },
+    { property: 'og:description', content: 'あなたを作った9冊を、シェアしよう。' },
+    { property: 'og:image', content: `${origin}/api/og-default` },
+    { property: 'og:type', content: 'website' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+  ]
+}
+
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {

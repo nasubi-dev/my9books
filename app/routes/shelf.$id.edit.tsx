@@ -213,7 +213,7 @@ export default function ShelfEdit(): JSX.Element {
         await fetch(`/api/shelves/${shelfId}/books`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isbn: book.isbn }),
+          body: JSON.stringify({ isbn: book.isbn, coverUrl: metaMap[book.isbn]?.coverUrl ?? null }),
         })
       }
 

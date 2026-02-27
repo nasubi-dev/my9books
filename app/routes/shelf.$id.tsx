@@ -10,6 +10,30 @@ import { db } from '../db'
 import { books, shelfBooks, shelves } from '../db/schema'
 import { COPY } from '../lib/copy'
 
+// ─── Meta ────────────────────────────────────────────────────
+
+export function meta({ data: loaderData }: Route.MetaArgs): Route.MetaDescriptors {
+  if (!loaderData?.shelf) {
+    return [{ title: 'my9books' }]
+  }
+  const { shelf, shelfUrl } = loaderData
+  const origin = new URL(shelfUrl).origin
+  const ogImage = `${origin}/api/og-default`
+  const title = COPY.share.ogTitle(shelf.name)
+  return [
+    { title },
+    { name: 'description', content: COPY.site.ogDescription },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: COPY.site.ogDescription },
+    { property: 'og:image', content: ogImage },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:url', content: shelfUrl },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: title },
+    { name: 'twitter:image', content: ogImage },
+  ]
+}
+
 // ─── 型定義 ───────────────────────────────────────────────────
 
 interface ShelfBookRow {
