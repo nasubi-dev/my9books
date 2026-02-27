@@ -3,11 +3,11 @@ import type { LoaderFunctionArgs } from 'react-router'
 import type { Route } from './+types/shelf.$id'
 import { getAuth } from '@clerk/react-router/ssr.server'
 import { track } from '@vercel/analytics'
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { data, useLoaderData } from 'react-router'
 import { db } from '../db'
-import { books, shelfBooks, shelves } from '../db/schema'
+import { books, shelfBooks, shelves, userBookBookmarks, userShelfBookmarks, userShelfLikes } from '../db/schema'
 import { COPY } from '../lib/copy'
 
 // ─── Meta ────────────────────────────────────────────────────
@@ -84,7 +84,43 @@ export async function loader(args: Route.LoaderArgs) {
       .catch(() => {})
   }
 
-  return { shelf: { ...shelf, books: rows }, shelfUrl: args.request.url }
+  // ログインユーザーのいいね・ブックマーク状態を取得
+  let liked = false
+  let bookmarked = false
+  let bookmarkedIsbns: string[] = []
+  if (viewerId) {
+    const [likeRow] = await db
+      .select({ id: userShelfLikes.id })
+      .from(userShelfLikes)
+      .where(and(eq(userShelfLikes.userId, viewerId), eq(userShelfLikes.shelfId, id)))
+      .limit(1)
+    liked = !!likeRow
+
+    const [bookmarkRow] = await db
+      .select({ id: userShelfBookmarks.id })
+      .from(userShelfBookmarks)
+      .where(and(eq(userShelfBookmarks.userId, viewerId), eq(userShelfBookmarks.shelfId, id)))
+      .limit(1)
+    bookmarked = !!bookmarkRow
+
+    const isbnList = rows.map(r => r.isbn)
+    if (isbnList.length > 0) {
+      const bookBookmarkRows = await db
+        .select({ isbn: userBookBookmarks.isbn })
+        .from(userBookBookmarks)
+        .where(and(eq(userBookBookmarks.userId, viewerId), inArray(userBookBookmarks.isbn, isbnList)))
+      bookmarkedIsbns = bookBookmarkRows.map(r => r.isbn)
+    }
+  }
+
+  return {
+    shelf: { ...shelf, books: rows },
+    shelfUrl: args.request.url,
+    viewerId,
+    liked,
+    bookmarked,
+    bookmarkedIsbns,
+  }
 }
 
 // ─── スケルトン ───────────────────────────────────────────────
@@ -164,10 +200,27 @@ interface ModalProps {
   book: ShelfBookRow
   meta: BookMeta
   shelfId: string
+  viewerId: string | null
+  isBookmarked: boolean
   onClose: () => void
 }
 
-function BookModal({ book, meta, shelfId, onClose }: ModalProps): JSX.Element {
+function BookModal({ book, meta, shelfId, viewerId, isBookmarked: initialBookmarked, onClose }: ModalProps): JSX.Element {
+  const [bookBookmarked, setBookBookmarked] = useState(initialBookmarked)
+  const [bookmarkLoading, setBookmarkLoading] = useState(false)
+
+  const handleBookBookmark = async (): Promise<void> => {
+    if (!viewerId || bookmarkLoading)
+      return
+    setBookmarkLoading(true)
+    try {
+      await fetch(`/api/books/${book.isbn}/bookmarks`, { method: bookBookmarked ? 'DELETE' : 'POST' })
+      setBookBookmarked(!bookBookmarked)
+    }
+    finally {
+      setBookmarkLoading(false)
+    }
+  }
   // ESC キーで閉じる
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
@@ -184,7 +237,8 @@ function BookModal({ book, meta, shelfId, onClose }: ModalProps): JSX.Element {
       onClick={onClose}
     >
       <div
-        className="modal w-full max-w-sm p-6 flex flex-col gap-4"
+        className="modal w-full max-w-sm flex flex-col gap-4 overflow-y-auto"
+        style={{ maxHeight: 'min(90vh, 680px)', padding: '1.5rem' }}
         onClick={e => e.stopPropagation()}
       >
         {/* 表紙 + 書籍情報 */}
@@ -193,17 +247,17 @@ function BookModal({ book, meta, shelfId, onClose }: ModalProps): JSX.Element {
             <img
               src={meta.coverUrl}
               alt={meta.title}
-              className="w-20 rounded-[var(--radius-sm)] flex-shrink-0 object-cover shadow-sm"
+              className="w-20 rounded-sm shrink-0 object-cover shadow-sm"
             />
           )}
           <div className="flex flex-col gap-1 min-w-0">
-            <p className="font-semibold text-sm leading-snug line-clamp-3 text-[var(--color-text)]">
+            <p className="font-semibold text-sm leading-snug line-clamp-3 text-text">
               {meta.title}
             </p>
-            <p className="text-xs text-[var(--color-text-secondary)] line-clamp-2">
+            <p className="text-xs text-text-secondary line-clamp-2">
               {meta.author}
             </p>
-            <p className="text-xs text-[var(--color-text-tertiary)] mt-1">
+            <p className="text-xs text-text-tertiary mt-1">
               ISBN:
               {' '}
               {book.isbn}
@@ -211,10 +265,27 @@ function BookModal({ book, meta, shelfId, onClose }: ModalProps): JSX.Element {
           </div>
         </div>
 
-        {/* 感想 */}
+        {/* 本のブックマーク */}
+        <button
+          type="button"
+          onClick={() => { void handleBookBookmark() }}
+          disabled={bookmarkLoading}
+          title={viewerId ? undefined : 'ログインすると保存できます'}
+          className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-60 border ${
+            bookBookmarked
+              ? 'bg-blue-50 text-blue-500 border-blue-200 hover:bg-blue-100'
+              : 'bg-sunken text-text-secondary border-border hover:bg-border'
+          }`}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill={bookBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+          </svg>
+          保存
+        </button>
+
         {book.review && (
-          <div className="bg-[var(--color-sunken)] rounded-[var(--radius-md)] p-3">
-            <p className="text-sm text-[var(--color-text)] leading-relaxed whitespace-pre-wrap">
+          <div className="bg-sunken rounded-md p-3">
+            <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">
               {book.review}
             </p>
           </div>
@@ -267,13 +338,19 @@ function BookModal({ book, meta, shelfId, onClose }: ModalProps): JSX.Element {
 // ─── メインページ ─────────────────────────────────────────────
 
 export default function ShelfDetailPage(): JSX.Element {
-  const { shelf, shelfUrl } = useLoaderData<typeof loader>()
+  const { shelf, shelfUrl, viewerId, liked: initialLiked, bookmarked: initialBookmarked, bookmarkedIsbns } = useLoaderData<typeof loader>()
 
   // 書影・タイトル・著者（クライアント側でプログレッシブ取得）
   // metaMap にキーが存在しない = まだ読み込み中
   const [metaMap, setMetaMap] = useState<Record<string, BookMeta | null>>({})
   const [modalBook, setModalBook] = useState<ShelfBookRow | null>(null)
   const [copied, setCopied] = useState(false)
+  const [liked, setLiked] = useState(initialLiked)
+  const [bookmarked, setBookmarked] = useState(initialBookmarked)
+  const [likesCount, setLikesCount] = useState(shelf.likesCount)
+  const [bookmarksCount, setBookmarksCount] = useState(shelf.bookmarksCount)
+  const [likeLoading, setLikeLoading] = useState(false)
+  const [bookmarkLoading, setBookmarkLoading] = useState(false)
 
   const handleCopyUrl = (): void => {
     navigator.clipboard.writeText(shelfUrl).then(() => {
@@ -286,6 +363,36 @@ export default function ShelfDetailPage(): JSX.Element {
   }
 
   const tweetUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shelfUrl)}&text=${encodeURIComponent(COPY.share.tweetText(shelf.name))}`
+
+  const handleLike = async (): Promise<void> => {
+    if (!viewerId || likeLoading)
+      return
+    setLikeLoading(true)
+    try {
+      const method = liked ? 'DELETE' : 'POST'
+      await fetch(`/api/shelves/${shelf.id}/likes`, { method })
+      setLiked(!liked)
+      setLikesCount(prev => liked ? Math.max(0, prev - 1) : prev + 1)
+    }
+    finally {
+      setLikeLoading(false)
+    }
+  }
+
+  const handleBookmark = async (): Promise<void> => {
+    if (!viewerId || bookmarkLoading)
+      return
+    setBookmarkLoading(true)
+    try {
+      const method = bookmarked ? 'DELETE' : 'POST'
+      await fetch(`/api/shelves/${shelf.id}/bookmarks`, { method })
+      setBookmarked(!bookmarked)
+      setBookmarksCount(prev => bookmarked ? Math.max(0, prev - 1) : prev + 1)
+    }
+    finally {
+      setBookmarkLoading(false)
+    }
+  }
 
   // 各 ISBN の書影を並列フェッチ（完了次第 state 更新）
   useEffect(() => {
@@ -330,12 +437,12 @@ export default function ShelfDetailPage(): JSX.Element {
             {COPY.status.viewCount(shelf.viewCount)}
           </p>
           {/* SNS共有 */}
-          <div className="flex gap-2 mt-3">
+          <div className="flex flex-wrap gap-2 mt-3">
             <a
               href={tweetUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--color-sunken)] text-[var(--color-text-secondary)] rounded-[var(--radius-full)] hover:bg-[var(--color-border)] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-sunken text-text-secondary rounded-full hover:bg-border transition-colors"
               onClick={() => track('share_twitter', { shelf_id: shelf.id })}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -346,7 +453,7 @@ export default function ShelfDetailPage(): JSX.Element {
             <button
               type="button"
               onClick={handleCopyUrl}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--color-sunken)] text-[var(--color-text-secondary)] rounded-[var(--radius-full)] hover:bg-[var(--color-border)] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-sunken text-text-secondary rounded-full hover:bg-border transition-colors"
             >
               {copied
                 ? (
@@ -366,6 +473,32 @@ export default function ShelfDetailPage(): JSX.Element {
                       {COPY.share.copyButtonLabel}
                     </>
                   )}
+            </button>
+            {/* いいね */}
+            <button
+              type="button"
+              onClick={() => { void handleLike() }}
+              disabled={likeLoading}
+              title={viewerId ? undefined : 'ログインするといいねできます'}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors disabled:opacity-60 ${liked ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-sunken text-text-secondary hover:bg-border'}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill={liked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+              </svg>
+              {likesCount > 0 ? likesCount : 'いいね'}
+            </button>
+            {/* ブックマーク */}
+            <button
+              type="button"
+              onClick={() => { void handleBookmark() }}
+              disabled={bookmarkLoading}
+              title={viewerId ? undefined : 'ログインするとブックマークできます'}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-colors disabled:opacity-60 ${bookmarked ? 'bg-blue-50 text-blue-500 hover:bg-blue-100' : 'bg-sunken text-text-secondary hover:bg-border'}`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+              </svg>
+              {bookmarksCount > 0 ? bookmarksCount : '保存'}
             </button>
           </div>
         </div>
@@ -405,6 +538,8 @@ export default function ShelfDetailPage(): JSX.Element {
           book={modalBook}
           meta={modalMeta}
           shelfId={shelf.id}
+          viewerId={viewerId}
+          isBookmarked={bookmarkedIsbns.includes(modalBook.isbn)}
           onClose={() => setModalBook(null)}
         />
       )}

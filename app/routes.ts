@@ -20,9 +20,12 @@ export default [
 
   // API Routes
   route('api/books/search', 'routes/api.books.search.ts'),
+  route('api/books/:isbn/bookmarks', 'routes/api.books.$isbn.bookmarks.ts'),
   route('api/shelves', 'routes/api.shelves.ts'),
   route('api/shelves/:id', 'routes/api.shelves.$id.ts'),
   route('api/shelves/:id/view', 'routes/api.shelves.$id.view.ts'),
+  route('api/shelves/:id/likes', 'routes/api.shelves.$id.likes.ts'),
+  route('api/shelves/:id/bookmarks', 'routes/api.shelves.$id.bookmarks.ts'),
   route('api/shelves/:id/books', 'routes/api.shelves.$id.books.ts'),
   route('api/shelves/:id/books/:isbn', 'routes/api.shelves.$id.books.$isbn.ts'),
   route(

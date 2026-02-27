@@ -19,7 +19,8 @@ export const shelves = sqliteTable('shelves', {
     .references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   viewCount: integer('view_count').notNull().default(0),
-  likesCount: integer('likes_count').notNull().default(0), // 将来実装
+  likesCount: integer('likes_count').notNull().default(0),
+  bookmarksCount: integer('bookmarks_count').notNull().default(0),
   createdAt: text('created_at')
     .notNull()
     .default(sql`(datetime('now'))`),
@@ -53,7 +54,21 @@ export const shelfBooks = sqliteTable('shelf_books', {
     .default(sql`(datetime('now'))`),
 })
 
-// shelf ブックマーク（将来実装）
+// shelf いいね
+export const userShelfLikes = sqliteTable('user_shelf_likes', {
+  id: text('id').primaryKey(), // UUID
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  shelfId: text('shelf_id')
+    .notNull()
+    .references(() => shelves.id, { onDelete: 'cascade' }),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(datetime('now'))`),
+})
+
+// shelf ブックマーク
 export const userShelfBookmarks = sqliteTable('user_shelf_bookmarks', {
   id: text('id').primaryKey(), // UUID
   userId: text('user_id')
@@ -67,7 +82,7 @@ export const userShelfBookmarks = sqliteTable('user_shelf_bookmarks', {
     .default(sql`(datetime('now'))`),
 })
 
-// 本ブックマーク（将来実装）
+// 本ブックマーク
 export const userBookBookmarks = sqliteTable('user_book_bookmarks', {
   id: text('id').primaryKey(), // UUID
   userId: text('user_id')
@@ -90,3 +105,6 @@ export type Book = typeof books.$inferSelect
 export type NewBook = typeof books.$inferInsert
 export type ShelfBook = typeof shelfBooks.$inferSelect
 export type NewShelfBook = typeof shelfBooks.$inferInsert
+export type UserShelfLike = typeof userShelfLikes.$inferSelect
+export type UserShelfBookmark = typeof userShelfBookmarks.$inferSelect
+export type UserBookBookmark = typeof userBookBookmarks.$inferSelect
