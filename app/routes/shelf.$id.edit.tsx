@@ -2,6 +2,7 @@ import type { DragEvent, JSX } from 'react'
 import type { LoaderFunctionArgs } from 'react-router'
 import type { BookSearchResult } from '../types/book'
 import type { Route } from './+types/shelf.$id.edit'
+import { track } from '@vercel/analytics'
 import { eq } from 'drizzle-orm'
 import { useEffect, useRef, useState } from 'react'
 import { data, useLoaderData, useNavigate } from 'react-router'
@@ -127,6 +128,7 @@ export default function ShelfEdit(): JSX.Element {
       })
       .catch(() => { setIsSearching(false) })
     setIsSearching(true)
+    track('book_search', { query: debouncedQuery })
     return () => {
       controller.abort()
       setResults([])

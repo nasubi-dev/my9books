@@ -2,6 +2,7 @@ import type { JSX } from 'react'
 import type { LoaderFunctionArgs } from 'react-router'
 import type { Route } from './+types/shelf.$id'
 import { getAuth } from '@clerk/react-router/ssr.server'
+import { track } from '@vercel/analytics'
 import { eq, sql } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { data, useLoaderData } from 'react-router'
@@ -138,10 +139,11 @@ function BookCard({ book, meta, loading, onClick }: BookCardProps): JSX.Element 
 interface ModalProps {
   book: ShelfBookRow
   meta: BookMeta
+  shelfId: string
   onClose: () => void
 }
 
-function BookModal({ book, meta, onClose }: ModalProps): JSX.Element {
+function BookModal({ book, meta, shelfId, onClose }: ModalProps): JSX.Element {
   // ESC キーで閉じる
   useEffect(() => {
     function onKey(e: KeyboardEvent): void {
@@ -202,9 +204,7 @@ function BookModal({ book, meta, onClose }: ModalProps): JSX.Element {
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-primary text-sm justify-center"
-              onClick={() => {
-                // affiliate_click カスタムイベント（Analytics）
-              }}
+              onClick={() => track('affiliate_click', { service: 'rakuten', isbn: book.isbn, shelf_id: shelfId })}
             >
               楽天ブックスで見る
             </a>
@@ -215,9 +215,7 @@ function BookModal({ book, meta, onClose }: ModalProps): JSX.Element {
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-secondary text-sm justify-center"
-              onClick={() => {
-                // affiliate_click カスタムイベント（Analytics）
-              }}
+              onClick={() => track('affiliate_click', { service: 'amazon', isbn: book.isbn, shelf_id: shelfId })}
             >
               Amazonで見る
             </a>
@@ -255,7 +253,7 @@ export default function ShelfDetailPage(): JSX.Element {
 
   const handleCopyUrl = (): void => {
     navigator.clipboard.writeText(shelfUrl).then(() => {
-      // share_url_copy カスタムイベント（フェーズ10で実装）
+      track('share_url_copy', { shelf_id: shelf.id })
       setCopied(true)
       setTimeout(() => {
         setCopied(false)
@@ -314,6 +312,7 @@ export default function ShelfDetailPage(): JSX.Element {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[var(--color-sunken)] text-[var(--color-text-secondary)] rounded-[var(--radius-full)] hover:bg-[var(--color-border)] transition-colors"
+              onClick={() => track('share_twitter', { shelf_id: shelf.id })}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.732-8.835L1.254 2.25H8.08l4.259 5.63L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -365,7 +364,10 @@ export default function ShelfDetailPage(): JSX.Element {
                   book={book}
                   meta={metaMap[book.isbn] ?? null}
                   loading={!(book.isbn in metaMap)}
-                  onClick={() => setModalBook(book)}
+                  onClick={() => {
+                    track('book_modal_open', { isbn: book.isbn, shelf_id: shelf.id })
+                    setModalBook(book)
+                  }}
                 />
               )
             })}
@@ -378,6 +380,7 @@ export default function ShelfDetailPage(): JSX.Element {
         <BookModal
           book={modalBook}
           meta={modalMeta}
+          shelfId={shelf.id}
           onClose={() => setModalBook(null)}
         />
       )}

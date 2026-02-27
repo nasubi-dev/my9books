@@ -2,6 +2,7 @@ import type { DragEvent, JSX } from 'react'
 import type { LoaderFunctionArgs } from 'react-router'
 import type { BookSearchResult } from '../types/book'
 import type { Route } from './+types/shelf.new'
+import { track } from '@vercel/analytics'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { requireAuth } from '../lib/auth.server'
@@ -70,6 +71,7 @@ export default function ShelfNew(): JSX.Element {
       })
       .catch(() => { setIsSearching(false) })
     setIsSearching(true)
+    track('book_search', { query: debouncedQuery })
     return () => {
       controller.abort()
       setResults([])
@@ -152,6 +154,7 @@ export default function ShelfNew(): JSX.Element {
         }
       }
 
+      track('shelf_created', { shelf_id: shelf.id })
       navigate(`/shelf/${shelf.id}`)
     }
     catch (err) {
