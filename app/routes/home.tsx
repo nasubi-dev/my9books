@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 import type { LoaderFunctionArgs } from 'react-router'
 import type { Route } from './+types/home'
-import { getAuth } from '@clerk/react-router/ssr.server'
+import { getAuth } from '@clerk/react-router/server'
 import { Link, useLoaderData } from 'react-router'
 import { COPY } from '../lib/copy'
 

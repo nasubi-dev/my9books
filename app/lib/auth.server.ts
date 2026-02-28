@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from 'react-router'
-import { getAuth } from '@clerk/react-router/ssr.server'
+import { getAuth } from '@clerk/react-router/server'
 import { redirect } from 'react-router'
 
 /**

@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs } from 'react-router'
 import type { Route } from './+types/api.shelves'
-import { getAuth } from '@clerk/react-router/ssr.server'
+import { getAuth } from '@clerk/react-router/server'
 import { db } from '../db'
 import { shelves, users } from '../db/schema'
 import { requireAuthApi } from '../lib/auth.server'
@@ -18,7 +18,9 @@ export async function action(args: Route.ActionArgs) {
 
   // Webhook 未設定などで users テーブルに未登録の場合は upsert
   const clerkAuth = await getAuth(args as unknown as LoaderFunctionArgs)
-  const displayName = (clerkAuth as { sessionClaims?: { name?: string } }).sessionClaims?.name ?? userId
+  const displayName
+    = (clerkAuth as { sessionClaims?: { name?: string } }).sessionClaims?.name
+      ?? userId
   await db
     .insert(users)
     .values({ id: userId, displayName })

@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 import type { LoaderFunctionArgs } from 'react-router'
 import type { Route } from './+types/shelf.$id'
-import { getAuth } from '@clerk/react-router/ssr.server'
+import { getAuth } from '@clerk/react-router/server'
 import { track } from '@vercel/analytics'
 import { and, eq, inArray, sql } from 'drizzle-orm'
 import { useEffect, useState } from 'react'

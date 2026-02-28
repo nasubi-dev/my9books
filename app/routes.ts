@@ -23,6 +23,7 @@ export default [
   route('users/:userId', 'routes/users.$userId.tsx'),
 
   // API Routes
+  route('api/feed', 'routes/api.feed.ts'),
   route('api/books/search', 'routes/api.books.search.ts'),
   route('api/books/cache-status', 'routes/api.books.cache-status.ts'),
   route('api/books/:isbn/bookmarks', 'routes/api.books.$isbn.bookmarks.ts'),

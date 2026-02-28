@@ -1,5 +1,5 @@
+import type { LoaderFunctionArgs } from 'react-router'
 import type { BookSearchResult } from '../types/book'
-import type { Route } from './+types/api.books.search'
 import {
   getCachedBookSearch,
   setCachedBookSearch,
@@ -8,9 +8,9 @@ import { searchGoogleBooks } from '../lib/google-books'
 import { searchRakutenBooks } from '../lib/rakuten'
 
 // GET /api/books/search?q={query}
-// 楽天ブックス + Google Books を並列検索し、ISBN で重複排除（楽天優先）
-// ⚠️ サーバーサイドインメモリキャッシュ（TTL 24h）を使用してリクエスト数を削減
-export async function loader({ request }: Route.LoaderArgs) {
+// 楽天ブックス + Google Books を並列検索し、ISBN で重複除去（楽天優先）
+// ⚠️ サーバーサイドインメモリキャッシュ（TTL 24h）を使用しテリクエスト数を削減
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url)
   const q = url.searchParams.get('q')
   if (!q)
