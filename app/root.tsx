@@ -12,6 +12,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from 'react-router'
+import { AppShell } from './components/AppShell'
 import './app.css'
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -73,7 +74,9 @@ export function Layout({ children }: { children: React.ReactNode }): JSX.Element
 export default function App({ loaderData }: Route.ComponentProps): JSX.Element {
   return (
     <ClerkProvider loaderData={loaderData}>
-      <Outlet />
+      <AppShell>
+        <Outlet />
+      </AppShell>
     </ClerkProvider>
   )
 }

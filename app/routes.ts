@@ -5,6 +5,10 @@ export default [
   // トップ
   index('routes/home.tsx'),
 
+  // タイムライン・検索
+  route('feed', 'routes/feed.tsx'),
+  route('search', 'routes/search.tsx'),
+
   // 認証（Clerk）
   route('sign-in/*', 'routes/sign-in.tsx'),
   route('sign-up/*', 'routes/sign-up.tsx'),
