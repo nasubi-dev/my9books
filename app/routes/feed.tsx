@@ -10,6 +10,7 @@ import { FeedShelfCard } from '../components/FeedShelfCard'
 import { GuestLimitModal } from '../components/GuestLimitModal'
 import { db } from '../db'
 import { shelfBooks, shelves } from '../db/schema'
+import { COPY } from '../lib/copy'
 
 const LIMIT = 20
 
@@ -19,7 +20,7 @@ type SortType = 'latest' | 'bookmarks' | 'random'
 
 export function meta(): Route.MetaDescriptors {
   return [
-    { title: 'フィード | my9books' },
+    { title: COPY.meta.feed },
     { name: 'description', content: 'みんなの本棚をスワイプして発見しよう' },
   ]
 }
@@ -93,17 +94,54 @@ function SortTabs({
   current: SortType
   onChange: (s: SortType) => void
 }): JSX.Element {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const indicatorRef = useRef<HTMLDivElement>(null)
+  const initializedRef = useRef(false)
+
+  useLayoutEffect(() => {
+    const container = containerRef.current
+    const indicator = indicatorRef.current
+    if (!container || !indicator)
+      return
+    const activeBtn = container.querySelector<HTMLButtonElement>(`[data-key="${current}"]`)
+    if (!activeBtn)
+      return
+
+    if (!initializedRef.current) {
+      gsap.set(indicator, { left: activeBtn.offsetLeft, width: activeBtn.offsetWidth })
+      initializedRef.current = true
+    }
+    else {
+      gsap.to(indicator, {
+        left: activeBtn.offsetLeft,
+        width: activeBtn.offsetWidth,
+        duration: 0.3,
+        ease: 'power2.out',
+      })
+    }
+  }, [current])
+
   return (
     <div className="flex justify-center items-center h-12 pointer-events-none">
-      <div className="flex items-center gap-1 bg-black/60 rounded-full px-1.5 py-1.5 pointer-events-auto">
+      <div
+        ref={containerRef}
+        className="relative flex items-center gap-1 bg-black/60 rounded-full px-1.5 py-1.5 pointer-events-auto"
+      >
+        {/* スライドインジケーター */}
+        <div
+          ref={indicatorRef}
+          className="absolute top-1.5 bottom-1.5 rounded-full bg-white pointer-events-none"
+          style={{ left: 0, width: 0 }}
+        />
         {SORT_TABS.map(tab => (
           <button
             key={tab.key}
+            data-key={tab.key}
             type="button"
             onClick={() => onChange(tab.key)}
-            className={`text-xs font-medium px-4 py-1.5 rounded-full transition-all ${
+            className={`relative z-10 text-xs font-medium px-4 py-1.5 rounded-full transition-colors ${
               current === tab.key
-                ? 'bg-white text-black font-semibold'
+                ? 'text-black font-semibold'
                 : 'text-white/50 hover:text-white/80'
             }`}
           >

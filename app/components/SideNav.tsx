@@ -2,6 +2,7 @@ import type { JSX } from 'react'
 import { useClerk, useUser } from '@clerk/react-router'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
+import { COPY } from '../lib/copy'
 import { AuthorModal } from './AuthorModal'
 
 interface NavItem {
@@ -202,7 +203,7 @@ export function SideNav(): JSX.Element {
               <circle cx="12" cy="12" r="10" />
               <path d="M12 16v-4M12 8h.01" />
             </svg>
-            製作者情報
+            {COPY.author.modalAriaLabel}
           </button>
         </div>
       </aside>

@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react'
 import { Form, Link, useLoaderData, useNavigate, useSearchParams } from 'react-router'
 import { db } from '../db'
 import { shelfBooks, shelves } from '../db/schema'
+import { COPY } from '../lib/copy'
 
 const COVER_SLOTS = ['first', 'second', 'third'] as const
 
@@ -69,7 +70,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 export function meta({ data }: Route.MetaArgs): Route.MetaDescriptors {
   const q = data?.q
   return [
-    { title: q ? `「${q}」の検索結果 | my9books` : '検索 | my9books' },
+    { title: q ? COPY.meta.searchQuery(q) : COPY.meta.searchDefault },
     { name: 'description', content: '本棚を名前で検索しよう' },
   ]
 }

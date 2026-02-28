@@ -46,7 +46,7 @@ export default function Home(): JSX.Element {
                     to="/me"
                     className="btn-primary w-full sm:w-auto px-8 py-3 text-base"
                   >
-                    マイページへ
+                    {COPY.myPage.button}
                   </Link>
                 )
               : (
@@ -98,13 +98,13 @@ export default function Home(): JSX.Element {
             {COPY.auth.ctaTitle}
           </h2>
           <p className="text-text-secondary text-sm mb-8">
-            {isSignedIn ? 'マイページから本棚を管理しよう' : 'ログインしてあなたの9冊を選ぼう'}
+            {isSignedIn ? COPY.myPage.loggedInSub : COPY.myPage.guestSub}
           </p>
           <Link
             to={isSignedIn ? '/me' : '/sign-up'}
             className="btn-primary inline-flex px-10 py-3 text-base"
           >
-            {isSignedIn ? 'マイページへ' : COPY.auth.signUpButton}
+            {isSignedIn ? COPY.myPage.button : COPY.auth.signUpButton}
           </Link>
         </div>
       </section>

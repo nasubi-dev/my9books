@@ -1,6 +1,7 @@
 import type { JSX } from 'react'
 import { useEffect } from 'react'
 import { Link } from 'react-router'
+import { COPY } from '../lib/copy'
 
 interface GuestLimitModalProps {
   isOpen: boolean
@@ -31,7 +32,7 @@ export function GuestLimitModal({ isOpen, onClose, reason = 'limit' }: GuestLimi
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label="ログイン誘導"
+      aria-label={COPY.guestModal.ariaLabel}
     >
       <div
         className="w-full sm:max-w-sm bg-surface rounded-t-2xl sm:rounded-2xl p-6 shadow-xl"
@@ -42,22 +43,22 @@ export function GuestLimitModal({ isOpen, onClose, reason = 'limit' }: GuestLimi
 
         {/* テキスト */}
         <h2 className="text-center text-lg font-bold text-text mb-2">
-          {reason === 'action' ? 'ログインが必要です' : 'もっと本棚を見るには'}
+          {reason === 'action' ? COPY.guestModal.actionTitle : COPY.guestModal.limitTitle}
         </h2>
         <p className="text-center text-sm text-text-secondary mb-6">
           {reason === 'action'
             ? (
                 <>
-                  いいね・ブックマークを保存するには
+                  {COPY.guestModal.actionBody1}
                   <br />
-                  ログインが必要です。
+                  {COPY.guestModal.actionBody2}
                 </>
               )
             : (
                 <>
-                  ログインするとブックマーク保存や、
+                  {COPY.guestModal.limitBody1}
                   <br />
-                  続きのフィードが楽しめます。
+                  {COPY.guestModal.limitBody2}
                 </>
               )}
         </p>
@@ -68,14 +69,14 @@ export function GuestLimitModal({ isOpen, onClose, reason = 'limit' }: GuestLimi
             to="/sign-in"
             className="w-full text-center py-3 rounded-lg bg-action text-action-fg font-semibold text-sm hover:opacity-90 transition-opacity"
           >
-            ログイン / 新規登録
+            {COPY.guestModal.loginButton}
           </Link>
           <button
             type="button"
             onClick={onClose}
             className="w-full text-center py-2 text-sm text-text-secondary hover:text-text transition-colors"
           >
-            {reason === 'action' ? '閉じる' : '閉じる（スワイプ不可のまま）'}
+            {reason === 'action' ? COPY.guestModal.closeAction : COPY.guestModal.closeLimit}
           </button>
         </div>
       </div>

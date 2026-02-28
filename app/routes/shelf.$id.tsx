@@ -14,7 +14,7 @@ import { COPY } from '../lib/copy'
 
 export function meta({ data: loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   if (!loaderData?.shelf) {
-    return [{ title: 'my9books' }]
+    return [{ title: COPY.meta.shelfFallback }]
   }
   const { shelf, shelfUrl } = loaderData
   const origin = new URL(shelfUrl).origin

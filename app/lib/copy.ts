@@ -110,4 +110,45 @@ export const COPY = {
       `(${current}/${max}冊)`,
     shelfCount: (count: number): string => `${count}件`,
   },
+
+  // ─── 作者情報 ─────────────────────────────────────────────────
+  author: {
+    name: 'なすび',
+    handle: '@nasubi_dev',
+    bio: 'my9books を作っています。本が好きで、それを誰かに伝えたくてこのサービスを作りました。',
+    githubUrl: 'https://github.com/nasubi-dev/my9books',
+    githubLinkText: 'ソースコードを見る',
+    twitterUrl: 'https://x.com/nasubi_dev',
+    twitterLinkText: 'X (Twitter) でフォロー',
+    modalAriaLabel: '製作者情報',
+  },
+
+  // ─── ゲスト制限モーダル ──────────────────────────────────────
+  guestModal: {
+    ariaLabel: 'ログイン誘導',
+    actionTitle: 'ログインが必要です',
+    limitTitle: 'もっと本棚を見るには',
+    actionBody1: 'いいね・ブックマークを保存するには',
+    actionBody2: 'ログインが必要です。',
+    limitBody1: 'ログインするとブックマーク保存や、',
+    limitBody2: '続きのフィードが楽しめます。',
+    loginButton: 'ログイン / 新規登録',
+    closeAction: '閉じる',
+    closeLimit: '閉じる（スワイプ不可のまま）',
+  },
+
+  // ─── ページタイトル・メタ ────────────────────────────────────
+  meta: {
+    feed: 'フィード | my9books',
+    searchDefault: '検索 | my9books',
+    searchQuery: (q: string): string => `「${q}」の検索結果 | my9books`,
+    shelfFallback: 'my9books',
+  },
+
+  // ─── マイページ系 ────────────────────────────────────────────
+  myPage: {
+    loggedInSub: 'マイページから本棚を管理しよう',
+    guestSub: 'ログインしてあなたの9冊を選ぼう',
+    button: 'マイページへ',
+  },
 } as const
