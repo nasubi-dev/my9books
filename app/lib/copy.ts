@@ -8,7 +8,7 @@ export const COPY = {
   site: {
     name: 'my9books',
     hashtag: '#my9books',
-    catchcopy: 'あなたをかたちづくる9冊を、シェアしよう。',
+    catchcopy: 'あなたをかたちづくる\n9冊を、シェアしよう。',
     subcopy:
       '読んできた本が、思考をつくる。\n出会った言葉が、価値観をつくる。\nあなたをかたちづくってきた9冊を選んで、\nあなたという人を、誰かに届けよう。',
     ogDescription: '私を構成する9冊の本を選んでシェアしよう',
@@ -30,6 +30,7 @@ export const COPY = {
   // ─── トップページ ───────────────────────────────────────────
   top: {
     howToTitle: 'はじめ方',
+    feedButton: 'みんなの本棚を見てみる',
     steps: [
       { title: '本を選ぶ', body: 'タイトルや著者名で検索して、9冊を選ぼう' },
       { title: '感想を添える', body: '一言コメントとネタバレ設定で本を紹介' },
@@ -150,5 +151,11 @@ export const COPY = {
     loggedInSub: 'マイページから本棚を管理しよう',
     guestSub: 'ログインしてあなたの9冊を選ぼう',
     button: 'マイページへ',
+  },
+  // ─── フッター ───────────────────────────────────────
+  footer: {
+    copyright: '© 2025 my9books',
+    affiliate: '本サービスはアフィリエイトプログラムを利用しています',
+    githubLinkText: 'GitHub',
   },
 } as const

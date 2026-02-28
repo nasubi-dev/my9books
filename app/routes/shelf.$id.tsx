@@ -49,6 +49,7 @@ interface BookMeta {
   title: string
   author: string
   coverUrl: string | null
+  description?: string | null
 }
 
 // ─── Loader ──────────────────────────────────────────────────
@@ -140,10 +141,7 @@ interface BookCardProps {
   onClick: () => void
 }
 
-function BookCard({ book, meta, loading, onClick }: BookCardProps): JSX.Element {
-  const [spoilerRevealed, setSpoilerRevealed] = useState(false)
-  const isSpoiler = book.isSpoiler === 1 && !spoilerRevealed
-
+function BookCard({ book: _book, meta, loading, onClick }: BookCardProps): JSX.Element {
   if (loading || !meta) {
     return <BookSkeleton />
   }
@@ -153,24 +151,14 @@ function BookCard({ book, meta, loading, onClick }: BookCardProps): JSX.Element 
       <button
         type="button"
         className="card-hoverable w-full aspect-[2/3] overflow-hidden p-0 block"
-        onClick={() => {
-          if (isSpoiler) {
-            setSpoilerRevealed(true)
-          }
-          else {
-            onClick()
-          }
-        }}
+        onClick={onClick}
       >
         {meta.coverUrl
           ? (
               <img
                 src={meta.coverUrl}
                 alt={meta.title}
-                className={[
-                  'w-full h-full object-cover transition-all duration-300',
-                  isSpoiler ? 'blur-xl scale-110' : '',
-                ].join(' ')}
+                className="w-full h-full object-cover"
               />
             )
           : (
@@ -180,15 +168,6 @@ function BookCard({ book, meta, loading, onClick }: BookCardProps): JSX.Element 
                 </span>
               </div>
             )}
-
-        {isSpoiler && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-2">
-            <span className="badge">ネタバレ</span>
-            <span className="text-[10px] text-[var(--color-text-secondary)] mt-1">
-              タップで表示
-            </span>
-          </div>
-        )}
       </button>
     </div>
   )
@@ -208,6 +187,7 @@ interface ModalProps {
 function BookModal({ book, meta, shelfId, viewerId, isBookmarked: initialBookmarked, onClose }: ModalProps): JSX.Element {
   const [bookBookmarked, setBookBookmarked] = useState(initialBookmarked)
   const [bookmarkLoading, setBookmarkLoading] = useState(false)
+  const [reviewRevealed, setReviewRevealed] = useState(false)
 
   const handleBookBookmark = async (): Promise<void> => {
     if (!viewerId || bookmarkLoading)
@@ -250,10 +230,28 @@ function BookModal({ book, meta, shelfId, viewerId, isBookmarked: initialBookmar
               className="w-20 rounded-sm shrink-0 object-cover shadow-sm"
             />
           )}
-          <div className="flex flex-col gap-1 min-w-0">
-            <p className="font-semibold text-sm leading-snug line-clamp-3 text-text">
-              {meta.title}
-            </p>
+          <div className="flex flex-col gap-1 min-w-0 flex-1">
+            <div className="flex items-start gap-2">
+              <p className="font-semibold text-sm leading-snug line-clamp-3 text-text flex-1">
+                {meta.title}
+              </p>
+              {/* 本のブックマーク */}
+              <button
+                type="button"
+                onClick={() => { void handleBookBookmark() }}
+                disabled={bookmarkLoading}
+                title={viewerId ? (bookBookmarked ? '保存済み' : '保存する') : 'ログインすると保存できます'}
+                className={`shrink-0 p-1.5 rounded-md transition-colors disabled:opacity-60 ${
+                  bookBookmarked
+                    ? 'text-blue-500 hover:bg-blue-50'
+                    : 'text-text-tertiary hover:bg-border'
+                }`}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={bookBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                </svg>
+              </button>
+            </div>
             <p className="text-xs text-text-secondary line-clamp-2">
               {meta.author}
             </p>
@@ -262,33 +260,36 @@ function BookModal({ book, meta, shelfId, viewerId, isBookmarked: initialBookmar
               {' '}
               {book.isbn}
             </p>
+            {meta.description && (
+              <p className="text-xs text-text-secondary line-clamp-3 mt-0.5">
+                {meta.description}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* 本のブックマーク */}
-        <button
-          type="button"
-          onClick={() => { void handleBookBookmark() }}
-          disabled={bookmarkLoading}
-          title={viewerId ? undefined : 'ログインすると保存できます'}
-          className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:opacity-60 border ${
-            bookBookmarked
-              ? 'bg-blue-50 text-blue-500 border-blue-200 hover:bg-blue-100'
-              : 'bg-sunken text-text-secondary border-border hover:bg-border'
-          }`}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill={bookBookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-          </svg>
-          保存
-        </button>
-
         {book.review && (
-          <div className="bg-sunken rounded-md p-3">
-            <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">
-              {book.review}
-            </p>
-          </div>
+          book.isSpoiler === 1 && !reviewRevealed
+            ? (
+                <button
+                  type="button"
+                  onClick={() => setReviewRevealed(true)}
+                  className="w-full bg-sunken rounded-md p-3 flex flex-col items-center gap-1 hover:bg-border transition-colors"
+                >
+                  <span className="badge">{COPY.book.spoilerLabel}</span>
+                  <span className="text-xs text-text-secondary">{COPY.book.spoilerReveal}</span>
+                </button>
+              )
+            : (
+                <div className="bg-sunken rounded-md p-3">
+                  {book.isSpoiler === 1 && (
+                    <span className="badge mb-2 inline-block">{COPY.book.spoilerLabel}</span>
+                  )}
+                  <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">
+                    {book.review}
+                  </p>
+                </div>
+              )
         )}
 
         {/* アフィリエイトリンク */}
@@ -406,10 +407,10 @@ export default function ShelfDetailPage(): JSX.Element {
     const staggerTimers: ReturnType<typeof setTimeout>[] = []
 
     interface CacheStatusRes {
-      hits: Record<string, { isbn: string, title: string, author: string, coverUrl: string | null }>
+      hits: Record<string, { isbn: string, title: string, author: string, coverUrl: string | null, description?: string | null }>
       misses: string[]
     }
-    interface SearchRes { books?: { isbn: string, title: string, author: string, coverUrl: string | null }[] }
+    interface SearchRes { books?: { isbn: string, title: string, author: string, coverUrl: string | null, description?: string | null }[] }
 
     const fetchMiss = (isbn: string): void => {
       fetch(`/api/books/search?q=${isbn}`, { signal: controller.signal })
@@ -419,14 +420,14 @@ export default function ShelfDetailPage(): JSX.Element {
           setMetaMap(prev => ({
             ...prev,
             [isbn]: found
-              ? { title: found.title, author: found.author, coverUrl: found.coverUrl }
-              : { title: isbn, author: '', coverUrl: null },
+              ? { title: found.title, author: found.author, coverUrl: found.coverUrl, description: found.description ?? null }
+              : { title: isbn, author: '', coverUrl: null, description: null },
           }))
         })
         .catch((err) => {
           if ((err as Error).name === 'AbortError')
             return
-          setMetaMap(prev => ({ ...prev, [isbn]: { title: isbn, author: '', coverUrl: null } }))
+          setMetaMap(prev => ({ ...prev, [isbn]: { title: isbn, author: '', coverUrl: null, description: null } }))
         })
     }
 
@@ -438,7 +439,7 @@ export default function ShelfDetailPage(): JSX.Element {
           setMetaMap((prev) => {
             const next = { ...prev }
             for (const [isbn, book] of Object.entries(hits))
-              next[isbn] = { title: book.title, author: book.author, coverUrl: book.coverUrl }
+              next[isbn] = { title: book.title, author: book.author, coverUrl: book.coverUrl, description: book.description ?? null }
             return next
           })
         }

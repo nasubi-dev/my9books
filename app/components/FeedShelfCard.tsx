@@ -1,4 +1,4 @@
-import type { JSX } from 'react'
+import type { JSX, MouseEvent } from 'react'
 import type { FeedShelfRow } from '../routes/api.feed'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
@@ -122,12 +122,26 @@ export function FeedShelfCard({
     onBookmarkToggle(shelf.id, next)
   }
 
+  function handleLikeButtonClick(e: MouseEvent): void {
+    e.preventDefault()
+    e.stopPropagation()
+    handleLikeClick()
+  }
+
+  function handleBookmarkButtonClick(e: MouseEvent): void {
+    e.preventDefault()
+    e.stopPropagation()
+    handleBookmarkClick()
+  }
+
   // 3×3 グリッド用 9スロット
   const slots = Array.from({ length: 9 }, (_, i) => shelf.isbns[i] ?? null)
 
   return (
-    <div
-      className={`relative w-full shrink-0 overflow-hidden bg-black select-none ${heightClass}`}
+    <Link
+      to={`/shelf/${shelf.id}`}
+      prefetch="intent"
+      className={`relative w-full shrink-0 overflow-hidden bg-black select-none block ${heightClass}`}
       data-shelf-id={shelf.id}
     >
       {/* 書影グリッド 3×3 */}
@@ -154,7 +168,7 @@ export function FeedShelfCard({
         {/* いいねボタン */}
         <button
           type="button"
-          onClick={handleLikeClick}
+          onClick={handleLikeButtonClick}
           aria-label={localLiked ? 'いいね解除' : 'いいね'}
           className="flex flex-col items-center gap-0.5"
         >
@@ -187,7 +201,7 @@ export function FeedShelfCard({
         {/* ブックマークボタン */}
         <button
           type="button"
-          onClick={handleBookmarkClick}
+          onClick={handleBookmarkButtonClick}
           aria-label={localBookmarked ? 'ブックマーク解除' : 'ブックマーク追加'}
           className="flex flex-col items-center gap-0.5"
         >
@@ -233,16 +247,11 @@ export function FeedShelfCard({
             {' '}
             {localCount.toLocaleString()}
           </span>
-          <Link
-            to={`/shelf/${shelf.id}`}
-            prefetch="intent"
-            className="text-xs bg-white/20 backdrop-blur text-white px-3 py-1 rounded-full border border-white/30 hover:bg-white/30 transition-colors"
-            onClick={e => e.stopPropagation()}
-          >
+          <span className="text-xs bg-white/20 backdrop-blur text-white px-3 py-1 rounded-full border border-white/30">
             この本棚を見る →
-          </Link>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

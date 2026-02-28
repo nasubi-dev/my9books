@@ -3,7 +3,7 @@ import type { LoaderFunctionArgs } from 'react-router'
 import type { Route } from './+types/me'
 import { desc, eq, inArray } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
-import { Link, useLoaderData, useNavigate } from 'react-router'
+import { Link, useLoaderData } from 'react-router'
 import { db } from '../db'
 import { books, shelfBooks, shelves, userBookBookmarks, userShelfBookmarks } from '../db/schema'
 import { requireAuth } from '../lib/auth.server'
@@ -94,6 +94,24 @@ export async function loader(args: Route.LoaderArgs) {
     })),
     userId,
   }
+}
+
+// ─── ShelfCreateCard ────────────────────────────────────
+
+function ShelfCreateCard(): JSX.Element {
+  return (
+    <Link
+      to="/shelf/new"
+      className="flex flex-col items-center justify-center gap-2.5 rounded-[var(--radius-md)] border-2 border-dashed border-[var(--color-border)] hover:border-[var(--color-action)] hover:bg-[var(--color-sunken)] transition-colors p-4 min-h-[140px]"
+    >
+      <div className="w-10 h-10 rounded-full bg-[var(--color-action)]/10 flex items-center justify-center text-[var(--color-action)]">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </div>
+      <span className="text-xs text-[var(--color-text-secondary)] font-medium text-center">新しい本棚</span>
+    </Link>
+  )
 }
 
 // ─── ShelfCard ────────────────────────────────────────────────
@@ -315,7 +333,6 @@ function BookmarkBookCard({ isbn, coverUrl, onRemove }: BookmarkBookCardProps): 
 
 export default function Me(): JSX.Element {
   const { shelves: initialShelves, bookmarkedShelves, bookmarkedBooks: initialBookmarkedBooks } = useLoaderData<typeof loader>()
-  const navigate = useNavigate()
   const [shelfList, setShelfList] = useState(initialShelves)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -342,42 +359,27 @@ export default function Me(): JSX.Element {
   return (
     <main className="min-h-screen bg-[var(--color-bg)] px-4 py-8">
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-text)]">マイShelf</h1>
-          <button
-            type="button"
-            onClick={() => navigate('/shelf/new')}
-            className="px-4 py-2 bg-[var(--color-action)] text-[var(--color-action-fg)] text-sm font-medium rounded-[var(--radius-md)] hover:bg-[var(--color-action-hover)] transition-colors"
-          >
-            + 新しいShelf
-          </button>
-        </div>
+        <h1 className="text-2xl font-bold text-[var(--color-text)] mb-8">マイShelf</h1>
 
-        {shelfList.length === 0
-          ? (
-              <div className="card p-12 text-center">
-                <p className="text-[var(--color-text-secondary)] mb-4">{COPY.empty.shelf}</p>
-                <button
-                  type="button"
-                  onClick={() => navigate('/shelf/new')}
-                  className="px-6 py-2 bg-[var(--color-action)] text-[var(--color-action-fg)] text-sm font-medium rounded-[var(--radius-md)] hover:bg-[var(--color-action-hover)] transition-colors"
-                >
-                  最初のShelfを作成する
-                </button>
-              </div>
-            )
-          : (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                {shelfList.map(shelf => (
-                  <ShelfCard
-                    key={shelf.id}
-                    shelf={shelf}
-                    isOwner
-                    onDelete={handleDeleteRequest}
-                  />
-                ))}
-              </div>
-            )}
+        {/* Shelf グリッド — 先頭に新規作成カード */}
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <ShelfCreateCard />
+          {shelfList.map(shelf => (
+            <ShelfCard
+              key={shelf.id}
+              shelf={shelf}
+              isOwner
+              onDelete={handleDeleteRequest}
+            />
+          ))}
+        </div>
+        {shelfList.length === 0 && (
+          <p className="text-[var(--color-text-secondary)] text-sm text-center mt-4">
+            {COPY.empty.shelf}
+            。
+            {COPY.empty.shelfSub}
+          </p>
+        )}
         {/* ── ブックマーク済みShelf ─────────────────── */}
         {bookmarkedShelves.length > 0 && (
           <div className="mt-12">
