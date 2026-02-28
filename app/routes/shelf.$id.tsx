@@ -394,14 +394,26 @@ export default function ShelfDetailPage(): JSX.Element {
     }
   }
 
-  // 各 ISBN の書影を並列フェッチ（完了次第 state 更新）
+  // 各 ISBN の書影を2フェーズ取得
+  // Phase 1: キャッシュチェック（外部API不要）→ ヒット分は全件一括表示
+  // Phase 2: 未キャッシュ分は 200ms stagger で複数リクエストを分散
   useEffect(() => {
     if (shelf.books.length === 0)
       return
 
-    for (const { isbn } of shelf.books) {
-      fetch(`/api/books/search?q=${isbn}`)
-        .then(r => r.json() as Promise<{ books?: { isbn: string, title: string, author: string, coverUrl: string | null }[] }>)
+    const isbns = shelf.books.map(b => b.isbn)
+    const controller = new AbortController()
+    const staggerTimers: ReturnType<typeof setTimeout>[] = []
+
+    interface CacheStatusRes {
+      hits: Record<string, { isbn: string, title: string, author: string, coverUrl: string | null }>
+      misses: string[]
+    }
+    interface SearchRes { books?: { isbn: string, title: string, author: string, coverUrl: string | null }[] }
+
+    const fetchMiss = (isbn: string): void => {
+      fetch(`/api/books/search?q=${isbn}`, { signal: controller.signal })
+        .then(r => r.json() as Promise<SearchRes>)
         .then((result) => {
           const found = result.books?.find(b => b.isbn === isbn) ?? result.books?.[0] ?? null
           setMetaMap(prev => ({
@@ -411,9 +423,46 @@ export default function ShelfDetailPage(): JSX.Element {
               : { title: isbn, author: '', coverUrl: null },
           }))
         })
-        .catch(() => {
+        .catch((err) => {
+          if ((err as Error).name === 'AbortError')
+            return
           setMetaMap(prev => ({ ...prev, [isbn]: { title: isbn, author: '', coverUrl: null } }))
         })
+    }
+
+    fetch(`/api/books/cache-status?isbns=${isbns.join(',')}`, { signal: controller.signal })
+      .then(r => r.json() as Promise<CacheStatusRes>)
+      .then(({ hits, misses }) => {
+        // Phase 1: キャッシュ済み一括反映
+        if (Object.keys(hits).length > 0) {
+          setMetaMap((prev) => {
+            const next = { ...prev }
+            for (const [isbn, book] of Object.entries(hits))
+              next[isbn] = { title: book.title, author: book.author, coverUrl: book.coverUrl }
+            return next
+          })
+        }
+        // Phase 2: 未キャッシュを stagger
+        for (let i = 0; i < misses.length; i++) {
+          const isbn = misses[i]
+          // eslint-disable-next-line react-web-api/no-leaked-timeout
+          staggerTimers.push(setTimeout(() => fetchMiss(isbn), i * 200))
+        }
+      })
+      .catch((err) => {
+        if ((err as Error).name === 'AbortError')
+          return
+        // cache-status 失敗時は全件 stagger でフォールバック
+        for (let i = 0; i < isbns.length; i++) {
+          const isbn = isbns[i]
+          // eslint-disable-next-line react-web-api/no-leaked-timeout
+          staggerTimers.push(setTimeout(() => fetchMiss(isbn), i * 200))
+        }
+      })
+
+    return () => {
+      controller.abort()
+      for (const t of staggerTimers) clearTimeout(t)
     }
   }, [shelf.books])
 

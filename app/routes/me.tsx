@@ -5,7 +5,7 @@ import { desc, eq, inArray } from 'drizzle-orm'
 import { useEffect, useState } from 'react'
 import { Link, useLoaderData, useNavigate } from 'react-router'
 import { db } from '../db'
-import { books, shelfBooks, shelves, userBookBookmarks, userShelfBookmarks, userShelfLikes } from '../db/schema'
+import { books, shelfBooks, shelves, userBookBookmarks, userShelfBookmarks } from '../db/schema'
 import { requireAuth } from '../lib/auth.server'
 import { COPY } from '../lib/copy'
 
@@ -48,19 +48,6 @@ export async function loader(args: Route.LoaderArgs) {
     .orderBy(desc(userShelfBookmarks.createdAt))
     .limit(4)
 
-  // いいね済みShelf（最大4件）
-  const likedShelfRows = await db
-    .select({
-      shelfId: userShelfLikes.shelfId,
-      shelfName: shelves.name,
-      viewCount: shelves.viewCount,
-    })
-    .from(userShelfLikes)
-    .innerJoin(shelves, eq(userShelfLikes.shelfId, shelves.id))
-    .where(eq(userShelfLikes.userId, userId))
-    .orderBy(desc(userShelfLikes.createdAt))
-    .limit(4)
-
   // ブックマーク済み本（最大4件）
   const bookmarkedBookRows = await db
     .select({
@@ -76,7 +63,6 @@ export async function loader(args: Route.LoaderArgs) {
   // ブックマーク/いいね済みShelfの先頭3冊のISBNを取得
   const relatedShelfIds = [
     ...bookmarkedShelfRows.map(r => r.shelfId),
-    ...likedShelfRows.map(r => r.shelfId),
   ]
   const relatedIsbnsMap: Record<string, string[]> = {}
   if (relatedShelfIds.length > 0) {
@@ -101,12 +87,7 @@ export async function loader(args: Route.LoaderArgs) {
       viewCount: r.viewCount,
       isbns: relatedIsbnsMap[r.shelfId] ?? [],
     })),
-    likedShelves: likedShelfRows.map(r => ({
-      id: r.shelfId,
-      name: r.shelfName,
-      viewCount: r.viewCount,
-      isbns: relatedIsbnsMap[r.shelfId] ?? [],
-    })),
+
     bookmarkedBooks: bookmarkedBookRows.map(r => ({
       isbn: r.isbn,
       coverUrl: r.coverUrl ?? null,
@@ -134,14 +115,60 @@ function ShelfCard({ shelf, isOwner, onDelete }: ShelfCardProps): JSX.Element {
   const [covers, setCovers] = useState<Record<string, string | null>>({})
 
   useEffect(() => {
-    for (const isbn of shelf.isbns) {
-      fetch(`/api/books/search?q=${encodeURIComponent(isbn)}`)
+    const controller = new AbortController()
+    const staggerTimers: ReturnType<typeof setTimeout>[] = []
+
+    interface CacheStatusRes {
+      hits: Record<string, { isbn: string, coverUrl: string | null }>
+      misses: string[]
+    }
+
+    const fetchMiss = (isbn: string): void => {
+      fetch(`/api/books/search?q=${encodeURIComponent(isbn)}`, { signal: controller.signal })
         .then(r => r.json() as Promise<{ books?: { isbn: string, coverUrl: string | null }[] }>)
         .then((d) => {
           const book = d.books?.find(b => b.isbn === isbn) ?? d.books?.[0] ?? null
           setCovers(prev => ({ ...prev, [isbn]: book?.coverUrl ?? null }))
         })
-        .catch(() => { setCovers(prev => ({ ...prev, [isbn]: null })) })
+        .catch((err) => {
+          if ((err as Error).name === 'AbortError')
+            return
+          setCovers(prev => ({ ...prev, [isbn]: null }))
+        })
+    }
+
+    fetch(`/api/books/cache-status?isbns=${shelf.isbns.map(encodeURIComponent).join(',')}`, { signal: controller.signal })
+      .then(r => r.json() as Promise<CacheStatusRes>)
+      .then(({ hits, misses }) => {
+        // Phase 1: キャッシュ済み一括反映
+        if (Object.keys(hits).length > 0) {
+          setCovers((prev) => {
+            const next = { ...prev }
+            for (const [isbn, book] of Object.entries(hits))
+              next[isbn] = book.coverUrl ?? null
+            return next
+          })
+        }
+        // Phase 2: 未キャッシュを stagger
+        for (let i = 0; i < misses.length; i++) {
+          const isbn = misses[i]
+          // eslint-disable-next-line react-web-api/no-leaked-timeout
+          staggerTimers.push(setTimeout(() => fetchMiss(isbn), i * 200))
+        }
+      })
+      .catch((err) => {
+        if ((err as Error).name === 'AbortError')
+          return
+        for (let i = 0; i < shelf.isbns.length; i++) {
+          const isbn = shelf.isbns[i]
+          // eslint-disable-next-line react-web-api/no-leaked-timeout
+          staggerTimers.push(setTimeout(() => fetchMiss(isbn), i * 200))
+        }
+      })
+
+    return () => {
+      controller.abort()
+      for (const t of staggerTimers) clearTimeout(t)
     }
   }, [shelf.isbns])
 
@@ -287,7 +314,7 @@ function BookmarkBookCard({ isbn, coverUrl, onRemove }: BookmarkBookCardProps): 
 // ─── メインページ ─────────────────────────────────────────────
 
 export default function Me(): JSX.Element {
-  const { shelves: initialShelves, bookmarkedShelves, likedShelves, bookmarkedBooks: initialBookmarkedBooks } = useLoaderData<typeof loader>()
+  const { shelves: initialShelves, bookmarkedShelves, bookmarkedBooks: initialBookmarkedBooks } = useLoaderData<typeof loader>()
   const navigate = useNavigate()
   const [shelfList, setShelfList] = useState(initialShelves)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
@@ -371,33 +398,6 @@ export default function Me(): JSX.Element {
               <p className="text-xs text-text-tertiary mt-3 text-center">
                 他
                 {bookmarkedShelves.length - 3}
-                {' '}
-                件
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* ── いいね済みShelf ──────────────────────── */}
-        {likedShelves.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-text">いいねした本棚</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {likedShelves.slice(0, 3).map(shelf => (
-                <ShelfCard
-                  key={shelf.id}
-                  shelf={shelf}
-                  isOwner={false}
-                  onDelete={() => {}}
-                />
-              ))}
-            </div>
-            {likedShelves.length > 3 && (
-              <p className="text-xs text-text-tertiary mt-3 text-center">
-                他
-                {likedShelves.length - 3}
                 {' '}
                 件
               </p>

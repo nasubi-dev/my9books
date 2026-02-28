@@ -20,6 +20,7 @@ export default [
 
   // API Routes
   route('api/books/search', 'routes/api.books.search.ts'),
+  route('api/books/cache-status', 'routes/api.books.cache-status.ts'),
   route('api/books/:isbn/bookmarks', 'routes/api.books.$isbn.bookmarks.ts'),
   route('api/shelves', 'routes/api.shelves.ts'),
   route('api/shelves/:id', 'routes/api.shelves.$id.ts'),
