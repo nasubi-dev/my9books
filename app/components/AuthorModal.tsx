@@ -74,8 +74,8 @@ export function AuthorModal({ isOpen, onClose }: AuthorModalProps): JSX.Element 
 
         {/* プロフィール */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-xl">
-            📚
+          <div className="w-12 h-12 border rounded-full bg-sunken flex items-center justify-center text-xl">
+            <img src={COPY.author.iconUrl} alt={COPY.author.name} className="w-full h-full rounded-full object-cover" />
           </div>
           <div>
             <p className="font-semibold text-text text-sm">{COPY.author.name}</p>

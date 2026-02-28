@@ -122,6 +122,7 @@ export const COPY = {
     twitterUrl: 'https://x.com/nasubi_dev',
     twitterLinkText: 'X (Twitter) でフォロー',
     modalAriaLabel: '製作者情報',
+    iconUrl: '/nasubi.webp',
   },
 
   // ─── ゲスト制限モーダル ──────────────────────────────────────
