@@ -15,8 +15,6 @@ import {
 import { AppShell } from './components/AppShell'
 import './app.css'
 
-const CLERK_PROXY_URL = 'https://my9books.nasubi.dev/clerk-proxy'
-
 // eslint-disable-next-line react-refresh/only-export-components
 export const middleware: Route.MiddlewareFunction[] = [clerkMiddleware()]
 
@@ -75,10 +73,7 @@ export function Layout({ children }: { children: React.ReactNode }): JSX.Element
 
 export default function App({ loaderData }: Route.ComponentProps): JSX.Element {
   return (
-    <ClerkProvider
-      loaderData={loaderData}
-      proxyUrl={CLERK_PROXY_URL}
-    >
+    <ClerkProvider loaderData={loaderData}>
       <AppShell>
         <Outlet />
       </AppShell>
