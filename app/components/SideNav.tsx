@@ -88,7 +88,7 @@ export function SideNav(): JSX.Element {
         {/* ロゴ */}
         <div className="px-5 pt-6 pb-4">
           <Link
-            to="/feed"
+            to="/"
             className="font-black text-lg tracking-tight text-text"
             prefetch="intent"
           >

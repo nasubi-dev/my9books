@@ -18,7 +18,7 @@ export const COPY = {
   share: {
     /** ツイート本文 */
     tweetText: (shelfName: string): string =>
-      `「${shelfName}」\n私を構成する9冊の本 #my9books`,
+      `「${shelfName}」\n私を構成する9冊の本 #my9books\n`,
     /** OGタイトル */
     ogTitle: (shelfName: string): string => `${shelfName} | my9books`,
     /** URLコピー完了トースト */
