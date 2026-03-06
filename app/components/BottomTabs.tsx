@@ -32,6 +32,7 @@ const TABS: Tab[] = [
   {
     label: 'フィード',
     to: '/feed',
+    disabled: true,
     icon: active => (
       <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
