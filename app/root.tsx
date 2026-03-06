@@ -73,7 +73,10 @@ export function Layout({ children }: { children: React.ReactNode }): JSX.Element
 
 export default function App({ loaderData }: Route.ComponentProps): JSX.Element {
   return (
-    <ClerkProvider loaderData={loaderData} proxyUrl="/clerk-proxy">
+    <ClerkProvider
+      loaderData={loaderData}
+      proxyUrl="https://my9books.nasubi.dev/clerk-proxy"
+    >
       <AppShell>
         <Outlet />
       </AppShell>
