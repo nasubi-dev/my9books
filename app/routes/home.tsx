@@ -124,19 +124,22 @@ export default function Home(): JSX.Element {
 
       {/* ── Footer ────────────────────────────────────── */}
       <footer className="px-6 py-8 border-t border-border">
-        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs text-text-tertiary text-center">
-          <span>{COPY.footer.copyright}</span>
-          <span className="hidden sm:inline">·</span>
-          <span>{COPY.footer.affiliate}</span>
-          <span className="hidden sm:inline">·</span>
-          <a
-            href={COPY.author.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-text-secondary transition-colors"
-          >
-            {COPY.footer.githubLinkText}
-          </a>
+        <div className="max-w-2xl mx-auto flex flex-col items-center gap-2 text-xs text-text-tertiary text-center">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
+            <span>{COPY.footer.copyright}</span>
+            <span className="hidden sm:inline">·</span>
+            <span>{COPY.footer.affiliateRakuten}</span>
+            <span className="hidden sm:inline">·</span>
+            <a
+              href={COPY.author.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-text-secondary transition-colors"
+            >
+              {COPY.footer.githubLinkText}
+            </a>
+          </div>
+          <p className="max-w-xl leading-relaxed">{COPY.footer.affiliateAmazon}</p>
         </div>
       </footer>
     </main>

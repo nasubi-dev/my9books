@@ -344,6 +344,14 @@ function BookModal({ book, meta, shelfId, viewerId, isBookmarked: initialBookmar
           )}
         </div>
 
+        <div className="border-t border-border pt-3 flex flex-col gap-1.5">
+          <p className="text-[10px] text-text-tertiary leading-relaxed">
+            {COPY.footer.affiliateAmazon}
+          </p>
+          <p className="text-[10px] text-text-tertiary leading-relaxed">
+            {COPY.footer.affiliateRakuten}
+          </p>
+        </div>
         <button type="button" className="btn btn-ghost text-sm self-center" onClick={onClose}>
           閉じる
         </button>

@@ -89,7 +89,7 @@ export const COPY = {
   // ─── フォーム ────────────────────────────────────────────────
   form: {
     shelfNameLabel: 'Shelf名',
-    shelfNamePlaceholder: '例: 2024年に読んだベスト本',
+    shelfNamePlaceholder: '例: 2026年に読んだベスト本',
     addBookLabel: '本を追加',
     searchPlaceholder: 'タイトルや著者名で検索...',
     reviewPlaceholder: '感想・紹介文（任意）',
@@ -155,8 +155,8 @@ export const COPY = {
   },
   // ─── フッター ───────────────────────────────────────
   footer: {
-    copyright: '© 2025 my9books',
-    affiliate: '本サービスはアフィリエイトプログラムを利用しています',
-    githubLinkText: 'GitHub',
+    copyright: '© 2026 my9books',
+    affiliate: '本サービスはアフィリエイトプログラムを利用しています',    affiliateAmazon: 'my9booksは、Amazon.co.jpを宣伝しリンクすることによってサイトが紹介料を獲得できる手段を提供することを目的に設定されたアフィリエイトプログラムである、Amazonアソシエイト・プログラムの参加者です。',
+    affiliateRakuten: '本サービスは楽天アフィリエイトプログラムを利用しています。',    githubLinkText: 'GitHub',
   },
 } as const
