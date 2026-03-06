@@ -13,8 +13,12 @@ export async function loader({ request }: Route.LoaderArgs) {
     headers,
   })
 
+  const responseHeaders = new Headers(response.headers)
+  // Cloudflare/Clerk のドメイン固有Cookieを除去（.clerk.nasubi.devに設定されるため）
+  responseHeaders.delete('set-cookie')
+
   return new Response(response.body, {
     status: response.status,
-    headers: response.headers,
+    headers: responseHeaders,
   })
 }
