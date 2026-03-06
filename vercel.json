@@ -1,1 +1,8 @@
-{}
+{
+  "rewrites": [
+    {
+      "source": "/clerk-proxy/:path*",
+      "destination": "https://clerk.my9books.nasubi.dev/:path*"
+    }
+  ]
+}
