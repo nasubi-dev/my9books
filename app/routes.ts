@@ -41,7 +41,4 @@ export default [
   route('api/users/:userId/shelves', 'routes/api.users.$userId.shelves.ts'),
   route('api/og-default', 'routes/api.og.default.tsx'),
   route('api/webhooks/clerk', 'routes/api.webhooks.clerk.ts'),
-
-  // Clerk Proxy
-  route('clerk-proxy/*', 'routes/clerk-proxy.$.ts'),
 ] satisfies RouteConfig

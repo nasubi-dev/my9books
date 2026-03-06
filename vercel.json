@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/clerk-proxy/:path*",
+      "destination": "https://clerk.nasubi.dev/:path*"
+    }
+  ]
+}
