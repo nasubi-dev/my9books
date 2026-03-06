@@ -15,7 +15,6 @@ import {
 import { AppShell } from './components/AppShell'
 import './app.css'
 
-// eslint-disable-next-line react-refresh/only-export-components
 const CLERK_PROXY_URL = 'https://my9books.nasubi.dev/clerk-proxy'
 
 // eslint-disable-next-line react-refresh/only-export-components
