@@ -8,7 +8,7 @@ export const COPY = {
   site: {
     name: 'my9books',
     hashtag: '#my9books',
-    catchcopy: 'あなたをかたちづくる\n9冊を、シェアしよう。',
+    catchcopy: 'あなたをかたちづくる\n9冊を､シェアしよう。',
     subcopy:
       '読んできた本が、思考をつくる。\n出会った言葉が、価値観をつくる。\nあなたをかたちづくってきた9冊を選んで、\nあなたという人を、誰かに届けよう。',
     ogDescription: '私を構成する9冊の本を選んでシェアしよう',

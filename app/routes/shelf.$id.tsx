@@ -124,6 +124,22 @@ export async function loader(args: Route.LoaderArgs) {
   }
 }
 
+// ─── ISBN-13 → ASIN (ISBN-10) 変換 ────────────────────────────
+function toAsin(isbn: string): string {
+  const clean = isbn.replace(/-/g, '')
+  if (clean.length === 10)
+    return clean
+  if (clean.length === 13 && clean.startsWith('978')) {
+    const base = clean.slice(3, 12)
+    let sum = 0
+    for (let i = 0; i < 9; i++)
+      sum += Number(base[i]) * (10 - i)
+    const check = (11 - (sum % 11)) % 11
+    return base + (check === 10 ? 'X' : String(check))
+  }
+  return clean
+}
+
 // ─── スケルトン ───────────────────────────────────────────────
 
 function BookSkeleton(): JSX.Element {
@@ -305,9 +321,9 @@ function BookModal({ book, meta, shelfId, viewerId, isBookmarked: initialBookmar
               楽天ブックスで見る
             </a>
           )}
-          {book.amazonAffiliateUrl && (
+          {(book.amazonAffiliateUrl || book.isbn) && (
             <a
-              href={book.amazonAffiliateUrl}
+              href={book.amazonAffiliateUrl || `https://www.amazon.co.jp/dp/${toAsin(book.isbn)}?tag=my9books-22`}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-secondary text-sm justify-center"
